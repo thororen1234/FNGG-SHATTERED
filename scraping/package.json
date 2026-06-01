@@ -1,0 +1,16 @@
+{
+  "name": "fngg-shattered",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "FNGG Shattered fragment harvesting tools",
+  "author": "thororen",
+  "license": "MIT",
+  "scripts": {
+    "check": "node check.js",
+    "read": "node read.js",
+    "harvest": "node harvest.js"
+  },
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
+  }
+}
