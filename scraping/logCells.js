@@ -10,12 +10,15 @@ function logCells() {
                 const parsed = JSON.parse(data);
                 const ids = Object.keys(parsed);
                 if (ids.length > 0) {
-                    console.log(`Day ${i} (${ids.length} fragments):\n` + ids.join("\n"));
+                    console.log(`Day ${i} (${ids.length} fragments):\n`);
+                    console.log(ids.join("\n"));
                 } else {
-                    console.log(`Day ${i}:\n` + data);
+                    console.log(`Day ${i}:\n`);
+                    console.log(data);
                 }
             } catch (e) {
-                console.log(`Day ${i}:\n` + data);
+                console.log(`Day ${i}:\n`);
+                console.log(data);
             }
         } else {
             console.log(`Day ${i}: No data found`);
