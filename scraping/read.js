@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { resolve } from "path";
 
-const MESSAGES_FILES = ['messages.txt', 'test.txt'];
-const SEEN_FILE = 'seen_ids.txt';
+const MESSAGES_FILES = ['input.txt', 'harvested.txt'].map(f => resolve(f));
+const SEEN_FILE = resolve('seen_ids.txt');
 const ID_RE = /\b[0-9A-Za-z]{4}-[0-9A-Za-z]{4}-[0-9A-Za-z]{4}\b/g;
 
 function loadSeen() {
