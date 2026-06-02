@@ -5,6 +5,7 @@ const SYNC_INTERVAL = 5 * 60 * 1000;
 export async function syncAllDays() {
   const data = await getData();
   let updated = false;
+  const newlyAdded = {};
 
   try {
     const res = await fetch('https://fn-shattered-codes.vercel.app/api/raw?day=all');
@@ -44,6 +45,11 @@ export async function syncAllDays() {
       const manuallyAdded = currentCodes.filter(c => !previouslySynced.includes(c));
       const mergedCodes = Array.from(new Set([...newSyncedCodes, ...manuallyAdded]));
 
+      const brandNewCodes = mergedCodes.filter(c => !currentCodes.includes(c));
+      if (brandNewCodes.length > 0) {
+        newlyAdded[day] = brandNewCodes;
+      }
+
       if (
         mergedCodes.length !== currentCodes.length ||
         !mergedCodes.every(c => currentCodes.includes(c)) ||
@@ -67,6 +73,28 @@ export async function syncAllDays() {
   } else {
     console.log('Sync complete, no changes.');
   }
+
+  if (Object.keys(newlyAdded).length === 0) {
+    console.log('No new codes to process, skipping background processing.');
+    return;
+  }
+
+  (async () => {
+    try {
+      const { getClearanceCookies } = await import('./cf.js');
+      const { applyApprovedCodeLogic } = await import('../actions.js');
+
+      const cookieInfo = await getClearanceCookies();
+
+      for (const day of Object.keys(newlyAdded)) {
+        for (const c of newlyAdded[day]) {
+          await applyApprovedCodeLogic(day, c, cookieInfo);
+        }
+      }
+    } catch (e) {
+      console.error('Error during background processing of synced codes:', e);
+    }
+  })();
 }
 
 let syncJobStarted = false;

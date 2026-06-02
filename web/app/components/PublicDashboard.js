@@ -15,7 +15,7 @@ export default function PublicDashboard({ initialData }) {
   const [mappings, setMappings] = useState(null);
 
   useEffect(() => {
-    fetch(`/mappings/day-${activeDay}.json`)
+    fetch(`/api/mappings/day-${activeDay}.json`)
       .then(res => res.json())
       .then(data => setMappings(data))
       .catch(err => setMappings(null));
@@ -135,7 +135,7 @@ export default function PublicDashboard({ initialData }) {
             className={`shattered-board-cell ${isMissing ? 'missing-cell' : ''}`}
             data-tooltip={(!isMissing && code) ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : `Code wasn't found\nRow ${r + 1}, Column ${c + 1}`}
             style={{
-              backgroundImage: code ? `url(/images/day-${activeDay}/${code}.webp)` : 'none'
+              backgroundImage: code ? `url(/api/images/day-${activeDay}/${code}.webp)` : 'none'
             }}
           />
         );
@@ -229,7 +229,7 @@ export default function PublicDashboard({ initialData }) {
             <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                 <span>0</span>
-                <span 
+                <span
                   style={{ fontWeight: 'bold', cursor: 'pointer' }}
                   onClick={() => setSliderValue(activeCodes.length)}
                   title="Click to snap to known pieces"

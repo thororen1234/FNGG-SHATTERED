@@ -5,7 +5,7 @@ const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' }
 
 export const metadata = {
   title: 'Shattered',
-  description: 'Shared fragment code lists with protected publishing and raw software output.',
+  description: 'FNGG Shattered Teaser with a code list, automatically updated & interactive map, and more.',
 };
 
 export default function RootLayout({ children }) {
