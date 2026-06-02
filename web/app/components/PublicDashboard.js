@@ -28,6 +28,24 @@ export default function PublicDashboard({ initialData }) {
   const [sliderValue, setSliderValue] = useState(initialCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : initialCount);
   const [mappings, setMappings] = useState(null);
 
+  const gridSize = useMemo(() => {
+    if (!mappings) {
+      return { cols: 48, rows: 27 };
+    }
+
+    let maxCol = 0;
+    let maxRow = 0;
+    Object.values(mappings).forEach(coords => {
+      if (Array.isArray(coords) && coords.length >= 2) {
+        const [x, y] = coords;
+        if (typeof x === 'number') maxCol = Math.max(maxCol, x);
+        if (typeof y === 'number') maxRow = Math.max(maxRow, y);
+      }
+    });
+
+    return { cols: maxCol + 1 || 48, rows: maxRow + 1 || 27 };
+  }, [mappings]);
+
   useEffect(() => {
     setTimeout(() => {
       setMounted(true);
@@ -165,8 +183,8 @@ export default function PublicDashboard({ initialData }) {
   const cells = useMemo(() => {
     const elements = [];
     if (!mappings) return elements;
-    for (let r = 0; r < 27; r++) {
-      for (let c = 0; c < 48; c++) {
+    for (let r = 0; r < gridSize.rows; r++) {
+      for (let c = 0; c < gridSize.cols; c++) {
         const code = cellMap[`${c},${r}`];
         const isMissing = code && code.startsWith('missing');
         const hasKnownPiece = code && activeCodes.includes(code);
@@ -186,7 +204,7 @@ export default function PublicDashboard({ initialData }) {
       }
     }
     return elements;
-  }, [mappings, activeDay, cellMap, activeCodes]);
+  }, [mappings, activeDay, cellMap, activeCodes, gridSize]);
 
   const orderedCellIds = useMemo(() => {
     const knownIds = shuffledCodes.map(code => `cell-${code}`);
@@ -204,8 +222,8 @@ export default function PublicDashboard({ initialData }) {
   useLayoutEffect(() => {
     const visibleSet = new Set(orderedCellIds.slice(0, sliderValue));
     if (mappings) {
-      for (let r = 0; r < 27; r++) {
-        for (let c = 0; c < 48; c++) {
+      for (let r = 0; r < gridSize.rows; r++) {
+        for (let c = 0; c < gridSize.cols; c++) {
           const code = cellMap[`${c},${r}`];
           const id = code ? `cell-${code}` : `cell-empty-${c}-${r}`;
           const el = document.getElementById(id);
@@ -216,7 +234,7 @@ export default function PublicDashboard({ initialData }) {
         }
       }
     }
-  }, [sliderValue, orderedCellIds, mappings, cellMap]);
+  }, [sliderValue, orderedCellIds, mappings, cellMap, gridSize]);
 
   return (
     <div id="view-public">
@@ -303,9 +321,14 @@ export default function PublicDashboard({ initialData }) {
               id="shattered-board-grid"
               className="shattered-board-grid"
               data-day={activeDay}
-              data-cols="48"
-              data-rows="27"
-              style={{ display: (mappings && sliderValue <= TOTAL_PIECES && activeCodes.length > 0) ? 'grid' : 'none' }}
+              data-cols={gridSize.cols}
+              data-rows={gridSize.rows}
+              style={{
+                display: (mappings && sliderValue <= TOTAL_PIECES && activeCodes.length > 0) ? 'grid' : 'none',
+                gridTemplateColumns: `repeat(${gridSize.cols}, 1fr)`,
+                gridTemplateRows: `repeat(${gridSize.rows}, 1fr)`,
+                aspectRatio: `${gridSize.cols} / ${gridSize.rows}`
+              }}
             >
               {cells}
             </div>
