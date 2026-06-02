@@ -1,5 +1,4 @@
-cookies.txt
-fngg.txt
+*.txt
 node_modules
 .pnp
 .pnp.*
