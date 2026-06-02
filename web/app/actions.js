@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { encrypt, verifyPassword } from './lib/auth';
 import { getData, saveData } from './lib/data';
 import { randomUUID } from 'crypto';
+import { syncAllDays } from './lib/sync';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -127,6 +128,21 @@ export async function clearDayCodes(day) {
   const data = await getData();
   data.days[String(day)] = [];
   await saveData(data);
+  return { success: true };
+}
+
+export async function deleteCode(day, code) {
+  const data = await getData();
+  const d = String(day);
+  if (data.days[d]) {
+    data.days[d] = data.days[d].filter(c => c !== code);
+    await saveData(data);
+  }
+  return { success: true };
+}
+
+export async function manualSync() {
+  await syncAllDays();
   return { success: true };
 }
 

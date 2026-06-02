@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { logout, reviewSubmission, bulkPublish, clearDayCodes, toggleSetting, toggleLockedDay, uploadMap } from '../actions';
+import { logout, reviewSubmission, bulkPublish, clearDayCodes, toggleSetting, toggleLockedDay, uploadMap, deleteCode, manualSync } from '../actions';
 import { useRouter } from 'next/navigation';
 
 export default function AdminClient({ initialData }) {
@@ -9,6 +9,7 @@ export default function AdminClient({ initialData }) {
   const [activeTab, setActiveTab] = useState('submissions');
   const [bulkDay, setBulkDay] = useState(1);
   const [bulkCodes, setBulkCodes] = useState('');
+  const [viewingDay, setViewingDay] = useState(null);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -55,6 +56,27 @@ export default function AdminClient({ initialData }) {
       e.target.reset();
     } else {
       alert(res.error);
+    }
+  };
+
+  const handleDeleteCode = async (day, code) => {
+    if (confirm(`Delete code ${code} from Day ${day}?`)) {
+      await deleteCode(day, code);
+      window.location.reload();
+    }
+  };
+
+  const handleManualSync = async () => {
+    try {
+      const res = await manualSync();
+      if (res.success) {
+        alert('Manual sync completed!');
+        window.location.reload();
+      } else {
+        alert('Error: ' + res.error);
+      }
+    } catch (err) {
+      alert('Error triggering sync: ' + err.message);
     }
   };
 
@@ -135,12 +157,31 @@ export default function AdminClient({ initialData }) {
             <h2 style={{ marginBottom: '1rem' }}>Day Overview</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {[1, 2, 3, 4, 5, 6].map(d => (
-                <div key={d} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
-                  <span>Day {d}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{(data.days[String(d)] || []).length} codes</span>
-                    <button className="button button-danger" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => handleClearDay(d)}>Clear</button>
+                <div key={d} style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem' }}>
+                    <span>Day {d}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{(data.days[String(d)] || []).length} codes</span>
+                      <button className="button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => setViewingDay(viewingDay === d ? null : d)}>
+                        {viewingDay === d ? 'Hide' : 'View'}
+                      </button>
+                      <button className="button button-danger" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => handleClearDay(d)}>Clear</button>
+                    </div>
                   </div>
+                  {viewingDay === d && (
+                    <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border)', maxHeight: '300px', overflowY: 'auto' }}>
+                      {(data.days[String(d)] || []).length === 0 ? (
+                        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>No codes for this day.</p>
+                      ) : (
+                        (data.days[String(d)] || []).map(code => (
+                          <div key={code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0' }}>
+                            <code style={{ fontSize: '0.875rem' }}>{code}</code>
+                            <button className="button button-danger" style={{ padding: '0.1rem 0.4rem', fontSize: '0.7rem' }} onClick={() => handleDeleteCode(d, code)}>Delete</button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -170,6 +211,14 @@ export default function AdminClient({ initialData }) {
       {activeTab === 'settings' && (
         <section className="panel">
           <h2 style={{ marginBottom: '1rem' }}>System Settings</h2>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h3>Manual Synchronization</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>Force a manual sync of codes from the external source.</p>
+            <button className="button button-primary" onClick={handleManualSync}>
+              Trigger Manual Sync
+            </button>
+          </div>
 
           <div style={{ marginBottom: '2rem' }}>
             <h3>Auto-Approval</h3>
