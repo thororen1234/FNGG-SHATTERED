@@ -3,7 +3,8 @@ import { getData } from '../lib/data';
 import { redirect } from 'next/navigation';
 import AdminClient from './AdminClient';
 
-export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPage() {
   const session = await getSession();
 

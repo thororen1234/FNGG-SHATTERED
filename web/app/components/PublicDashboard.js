@@ -342,7 +342,8 @@ export default function PublicDashboard({ initialData }) {
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/api/maps/day-${mounted ? activeDay : 1}.png`}
+                key={`map-day-${mounted ? activeDay : 1}`}
+                src={`/api/maps/day-${mounted ? activeDay : 1}.png?v=${encodeURIComponent(data?.updatedAt || '')}`}
                 alt={`Map for day ${mounted ? activeDay : 1}`}
                 style={{
                   width: '100%',

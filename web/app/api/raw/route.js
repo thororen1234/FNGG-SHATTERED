@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server';
 import { getData } from '@/app/lib/data';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const dayParam = searchParams.get('day');
-  
+
   const data = await getData();
 
   let output = '';
 
   if (dayParam === 'all') {
     output = Object.entries(data.days || {})
-      .sort(([a],[b]) => Number(a) - Number(b))
+      .sort(([a], [b]) => Number(a) - Number(b))
       .map(([d, codes]) => `# Day ${d}\n${codes.join('\n')}`)
       .join('\n\n');
   } else {
@@ -25,6 +27,7 @@ export async function GET(request) {
     headers: {
       'Content-Type': 'text/plain',
       'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-store',
     },
   });
 }
