@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitCode } from '../actions';
 
@@ -111,33 +111,55 @@ export default function PublicDashboard({ initialData }) {
     } catch (err) { }
   };
 
-  const visibleCodes = new Set(shuffledCodes.slice(0, sliderValue));
-  const cellMap = {};
-  if (mappings) {
-    Object.entries(mappings).forEach(([code, coords]) => {
-      cellMap[`${coords[0]},${coords[1]}`] = code;
-    });
-  }
+  const cellMap = useMemo(() => {
+    const map = {};
+    if (mappings) {
+      Object.entries(mappings).forEach(([code, coords]) => {
+        map[`${coords[0]},${coords[1]}`] = code;
+      });
+    }
+    return map;
+  }, [mappings]);
 
-  const cells = [];
-  if (mappings) {
+  const cells = useMemo(() => {
+    const elements = [];
+    if (!mappings) return elements;
     for (let r = 0; r < 27; r++) {
       for (let c = 0; c < 48; c++) {
         const code = cellMap[`${c},${r}`];
-        const isVisible = code && visibleCodes.has(code);
-        cells.push(
+        elements.push(
           <div 
             key={`${c},${r}`} 
-            className={`shattered-board-cell ${isVisible ? 'filled' : ''}`}
+            id={code ? `cell-${code}` : `cell-empty-${c}-${r}`}
+            className="shattered-board-cell"
             data-tooltip={code ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : `Row ${r + 1}, Column ${c + 1}`}
             style={{
-              backgroundImage: isVisible ? `url(/images/day-${activeDay}/${code}.webp)` : 'none'
+              backgroundImage: code ? `url(/images/day-${activeDay}/${code}.webp)` : 'none'
             }}
           />
         );
       }
     }
-  }
+    return elements;
+  }, [mappings, activeDay, cellMap]);
+
+  useLayoutEffect(() => {
+    const visibleSet = new Set(shuffledCodes.slice(0, sliderValue));
+    if (mappings) {
+      for (let r = 0; r < 27; r++) {
+        for (let c = 0; c < 48; c++) {
+          const code = cellMap[`${c},${r}`];
+          if (code) {
+             const el = document.getElementById(`cell-${code}`);
+             if (el) {
+                if (visibleSet.has(code)) el.classList.add('filled');
+                else el.classList.remove('filled');
+             }
+          }
+        }
+      }
+    }
+  }, [sliderValue, shuffledCodes, mappings, cellMap]);
 
   return (
     <div id="view-public">
@@ -188,8 +210,7 @@ export default function PublicDashboard({ initialData }) {
           border: '1px dashed var(--border)',
           borderRadius: 'var(--radius)',
           padding: '2rem',
-          textAlign: 'center',
-          overflow: 'hidden'
+          textAlign: 'center'
         }}>
           {activeCodes.length > 0 && (
             <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
@@ -212,12 +233,24 @@ export default function PublicDashboard({ initialData }) {
           )}
 
           <div style={{ position: 'relative', width: '100%', margin: '0 auto', maxWidth: '100%' }}>
-            {mappings && sliderValue < TOTAL_PIECES && activeCodes.length > 0 ? (
-              <div id="shattered-board-grid" className="shattered-board-grid" data-day={activeDay} data-cols="48" data-rows="27">
+              <div 
+                id="shattered-board-grid" 
+                className="shattered-board-grid" 
+                data-day={activeDay} 
+                data-cols="48" 
+                data-rows="27"
+                style={{ display: (mappings && sliderValue < TOTAL_PIECES && activeCodes.length > 0) ? 'grid' : 'none' }}
+              >
                 {cells}
               </div>
-            ) : (
-              <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', margin: '0 auto' }}>
+
+              <div style={{ 
+                position: 'relative', 
+                width: '100%', 
+                aspectRatio: '16 / 9', 
+                margin: '0 auto',
+                display: (!mappings || sliderValue === TOTAL_PIECES || activeCodes.length === 0) ? 'block' : 'none'
+              }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`/api/maps/day-${activeDay}.png`}
@@ -247,7 +280,6 @@ export default function PublicDashboard({ initialData }) {
                   No map uploaded for day {activeDay} yet.
                 </div>
               </div>
-            )}
           </div>
         </div>
       </section>
