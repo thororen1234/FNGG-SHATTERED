@@ -26,7 +26,8 @@ function main() {
   console.log(`\nFound ${found.size} unique IDs total.\n`);
   const items = [...found].sort().map(id => `"${id}"`).join(', ');
   console.log(`const fragments = [${items}];\n`);
+
+  process.exit(0);
 }
 
 main();
-process.exit(0);

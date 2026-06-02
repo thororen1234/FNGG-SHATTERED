@@ -55,7 +55,8 @@ function main() {
   for (const id of newIds) seen.add(id);
   saveSeen(seen);
   console.log(`seen_ids.txt updated (${seen.size} total IDs tracked).`);
+
+  process.exit(0);
 }
 
 main();
-process.exit(0);
