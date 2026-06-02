@@ -19,12 +19,10 @@ RUN pnpm run build
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-RUN cp -r /app/.next/standalone/. ./
-RUN cp -r /app/.next/static ./.next/static
 RUN mkdir -p /app/uploaded
 RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["node", ".next/standalone/server.js"]
