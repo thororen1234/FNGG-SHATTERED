@@ -13,10 +13,6 @@ export default function AdminClient({ initialData }) {
   const [rawViewDays, setRawViewDays] = useState({});
   const router = useRouter();
 
-  useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
-
   const handleLogout = async () => {
     await logout();
     router.push('/login');
@@ -184,7 +180,7 @@ export default function AdminClient({ initialData }) {
                     <span>Day {d}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span style={{ color: 'var(--primary)', fontWeight: 'bold', marginRight: '0.5rem' }}>{(data.days[String(d)] || []).length} codes</span>
-                      <button className={`button ${rawViewDays[d] ? 'button-primary' : ''}`} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => setRawViewDays(p => ({...p, [d]: !p[d]}))}>Raw</button>
+                      <button className={`button ${rawViewDays[d] ? 'button-primary' : ''}`} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => setRawViewDays(p => ({ ...p, [d]: !p[d] }))}>Raw</button>
                       <a href={`/api/raw?day=${d}`} target="_blank" rel="noreferrer" className="button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>API raw</a>
                       <button className="button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => setViewingDay(viewingDay === d ? null : d)}>
                         {viewingDay === d ? 'Hide' : 'View'}
@@ -287,6 +283,17 @@ export default function AdminClient({ initialData }) {
                     className="button"
                     style={{ borderColor: isLocked ? 'var(--danger)' : 'var(--border)', color: isLocked ? 'var(--danger)' : 'var(--text)' }}
                     onClick={async () => {
+                      setData(prev => {
+                        const currentLocked = prev.settings.lockedDays;
+                        const nextLocked = currentLocked.includes(d)
+                          ? currentLocked.filter(day => day !== d)
+                          : [...currentLocked, d];
+                        return {
+                          ...prev,
+                          settings: { ...prev.settings, lockedDays: nextLocked }
+                        };
+                      });
+
                       await toggleLockedDay(d);
                       router.refresh();
                     }}

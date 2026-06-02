@@ -13,5 +13,5 @@ export default async function AdminPage() {
 
   const data = await getData();
 
-  return <AdminClient initialData={data} />;
+  return <AdminClient key={JSON.stringify(data.settings)} initialData={data} />;
 }
