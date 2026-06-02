@@ -2,12 +2,11 @@ import { readFileSync, existsSync, appendFileSync } from 'fs';
 import { resolve } from 'path';
 import { URL, URLSearchParams } from 'url';
 import { execFileSync } from 'child_process';
-import { createRequire } from 'module';
-import { Tesseract } from 'tesseract.js'
+import Tesseract from 'tesseract.js';
 
 const URLS_FILE = resolve('urls.txt');
 const COOKIES_FILE = resolve('cookies.txt');
-const MESSAGES_FILE = resolve('messages.txt');
+const HARVESTED_FILE = resolve('harvested.txt');
 const READ_JS = resolve('read.js');
 
 const ID_RE = /\b([0-9A-Za-z]{4}-[0-9A-Za-z]{4}-[0-9A-Za-z]{4})\b/g;
@@ -288,20 +287,32 @@ function findIdsInText(text) {
   return new Set(matches);
 }
 
+let _ocrWorker = null;
+let _ocrMutex = Promise.resolve();
+
 async function ocrImageUrl(imageUrl) {
-  const worker = await Tesseract.createWorker('eng');
-  if (!worker) return new Set();
+  let release;
+  const acquire = new Promise(res => { release = res; });
+  const prevMutex = _ocrMutex;
+  _ocrMutex = prevMutex.then(() => acquire).catch(() => acquire);
+  await prevMutex;
+
   try {
+    if (!_ocrWorker) {
+      _ocrWorker = await Tesseract.createWorker('eng');
+    }
     const resp = await fetch(imageUrl, { headers: getHeaders(), signal: AbortSignal.timeout(15_000) });
     if (!resp.ok) return new Set();
     const buf = Buffer.from(await resp.arrayBuffer());
-    const { data: { text } } = await worker.recognize(buf);
+    const { data: { text } } = await _ocrWorker.recognize(buf);
     const ids = findIdsInText(text);
     if (ids.size > 0) console.log(`OCR -> ${ids.size} ID(s)`);
     return ids;
   } catch (e) {
     console.log(`OCR failed: ${e.message}`);
     return new Set();
+  } finally {
+    release();
   }
 }
 
@@ -598,8 +609,8 @@ async function processUrl(line, idx, total) {
   return found;
 }
 
-function appendToMessages(ids) {
-  appendFileSync(MESSAGES_FILE, ids.join('\n') + '\n', 'utf-8');
+function appendToHarvested(ids) {
+  appendFileSync(HARVESTED_FILE, ids.join('\n') + '\n', 'utf-8');
 }
 
 async function runWithPool(tasks, maxWorkers) {
@@ -660,8 +671,8 @@ async function main() {
   if (allIds.length === 0) {
     console.log('Nothing found.');
   } else {
-    appendToMessages(allIds);
-    console.log(`\nAppended to ${MESSAGES_FILE}:`);
+    appendToHarvested(allIds);
+    console.log(`\nAppended to ${HARVESTED_FILE}:`);
     for (const id of allIds) console.log(`   ${id}`);
   }
 
@@ -678,6 +689,7 @@ async function main() {
   }
 
   console.log('\nDone!');
+  process.exit(0);
 }
 
 main().catch(e => {

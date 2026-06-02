@@ -1,19 +1,32 @@
-import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { resolve } from "path";
 
-const MESSAGES_FILE = resolve('messages.txt');
-const ID_RE = /\b([0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4})\b/gi;
+const HARVESTED_FILES = ['input.txt', 'harvested.txt'].map(f => resolve(f));
+const ID_RE = /\b[0-9A-Za-z]{4}-[0-9A-Za-z]{4}-[0-9A-Za-z]{4}\b/g;
+
+function extractIds(text) {
+  const matches = text.match(ID_RE) || [];
+  return new Set(matches);
+}
 
 function main() {
-  if (!existsSync(MESSAGES_FILE)) {
-    console.error('messages.txt not found!');
-    process.exit(1);
+  let found = new Set();
+
+  for (const f of HARVESTED_FILES) {
+    if (!existsSync(f)) {
+      console.warn(`Warning: ${f} not found, skipping.`);
+      continue;
+    }
+    const text = readFileSync(f, 'utf-8');
+    const ids = extractIds(text);
+    console.log(`${f}: ${ids.size} IDs found.`);
+    for (const id of ids) found.add(id);
   }
 
-  const text = readFileSync(MESSAGES_FILE, 'utf-8');
-  const found = new Set([...text.matchAll(ID_RE)].map(m => m[1].toUpperCase()));
-  const items = [...found].map(id => `"${id}"`).join(', ');
+  console.log(`\nFound ${found.size} unique IDs total.\n`);
+  const items = [...found].sort().map(id => `"${id}"`).join(', ');
   console.log(`const fragments = [${items}];\n`);
 }
 
 main();
+process.exit(0);

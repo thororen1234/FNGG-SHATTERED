@@ -7,11 +7,19 @@ import { submitCode } from '../actions';
 export default function PublicDashboard({ initialData }) {
   const router = useRouter();
   const [activeDay, setActiveDay] = useState(1);
-  const [data, setData] = useState(initialData);
+  const data = initialData;
 
   useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
+    const saved = localStorage.getItem('fngg_active_day');
+    if (saved) {
+      setTimeout(() => setActiveDay(Number(saved)), 0);
+    }
+  }, []);
+
+  const handleDayChange = (d) => {
+    setActiveDay(d);
+    localStorage.setItem('fngg_active_day', d);
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
@@ -100,7 +108,7 @@ export default function PublicDashboard({ initialData }) {
           return (
             <button
               key={d}
-              onClick={() => setActiveDay(d)}
+              onClick={() => handleDayChange(d)}
               className="button"
               style={{
                 borderColor: isActive ? 'var(--primary)' : 'var(--border)',
@@ -130,6 +138,7 @@ export default function PublicDashboard({ initialData }) {
           textAlign: 'center',
           overflow: 'hidden'
         }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`/api/maps/day-${activeDay}.png`}
             alt={`Map for day ${activeDay}`}

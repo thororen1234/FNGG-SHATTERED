@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from "path";
 
-const MESSAGES_FILES = ['input.txt', 'harvested.txt'].map(f => resolve(f));
+const HARVESTED_FILES = ['input.txt', 'harvested.txt'].map(f => resolve(f));
 const SEEN_FILE = resolve('seen_ids.txt');
 const ID_RE = /\b[0-9A-Za-z]{4}-[0-9A-Za-z]{4}-[0-9A-Za-z]{4}\b/g;
 
@@ -28,7 +28,7 @@ function extractIds(text) {
 function main() {
   let found = new Set();
 
-  for (const f of MESSAGES_FILES) {
+  for (const f of HARVESTED_FILES) {
     if (!existsSync(f)) {
       console.warn(`Warning: ${f} not found, skipping.`);
       continue;
@@ -58,3 +58,4 @@ function main() {
 }
 
 main();
+process.exit(0);
