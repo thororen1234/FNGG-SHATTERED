@@ -11,7 +11,7 @@ export default function PublicDashboard({ initialData }) {
   const data = initialData;
 
   const TOTAL_PIECES = 1296;
-  const [sliderValue, setSliderValue] = useState(TOTAL_PIECES);
+  const [sliderValue, setSliderValue] = useState(TOTAL_PIECES + 1);
   const [mappings, setMappings] = useState(null);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function PublicDashboard({ initialData }) {
   const handleDayChange = (d) => {
     setActiveDay(d);
     localStorage.setItem('fngg_active_day', d);
-    setSliderValue(TOTAL_PIECES);
+    setSliderValue(TOTAL_PIECES + 1);
   };
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +40,7 @@ export default function PublicDashboard({ initialData }) {
 
   const days = [1, 2, 3, 4, 5, 6];
   const activeCodes = [...(data.days[String(activeDay)] || [])].sort();
-  
+
   const hashStr = (str) => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -127,12 +127,13 @@ export default function PublicDashboard({ initialData }) {
     for (let r = 0; r < 27; r++) {
       for (let c = 0; c < 48; c++) {
         const code = cellMap[`${c},${r}`];
+        const isMissing = code && code.startsWith('missing');
         elements.push(
-          <div 
-            key={`${c},${r}`} 
+          <div
+            key={`${c},${r}`}
             id={code ? `cell-${code}` : `cell-empty-${c}-${r}`}
-            className="shattered-board-cell"
-            data-tooltip={code ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : `Row ${r + 1}, Column ${c + 1}`}
+            className={`shattered-board-cell ${isMissing ? 'missing-cell' : ''}`}
+            data-tooltip={(!isMissing && code) ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : `Code wasn't found\nRow ${r + 1}, Column ${c + 1}`}
             style={{
               backgroundImage: code ? `url(/images/day-${activeDay}/${code}.webp)` : 'none'
             }}
@@ -143,23 +144,35 @@ export default function PublicDashboard({ initialData }) {
     return elements;
   }, [mappings, activeDay, cellMap]);
 
+  const orderedCellIds = useMemo(() => {
+    const knownIds = shuffledCodes.map(code => `cell-${code}`);
+    const missingIds = [];
+    if (mappings) {
+      Object.keys(mappings).forEach(code => {
+        if (code.startsWith('missing-')) {
+          missingIds.push(`cell-${code}`);
+        }
+      });
+    }
+    return [...knownIds, ...missingIds];
+  }, [shuffledCodes, mappings, cellMap]);
+
   useLayoutEffect(() => {
-    const visibleSet = new Set(shuffledCodes.slice(0, sliderValue));
+    const visibleSet = new Set(orderedCellIds.slice(0, sliderValue));
     if (mappings) {
       for (let r = 0; r < 27; r++) {
         for (let c = 0; c < 48; c++) {
           const code = cellMap[`${c},${r}`];
-          if (code) {
-             const el = document.getElementById(`cell-${code}`);
-             if (el) {
-                if (visibleSet.has(code)) el.classList.add('filled');
-                else el.classList.remove('filled');
-             }
+          const id = code ? `cell-${code}` : `cell-empty-${c}-${r}`;
+          const el = document.getElementById(id);
+          if (el) {
+            if (visibleSet.has(id)) el.classList.add('filled');
+            else el.classList.remove('filled');
           }
         }
       }
     }
-  }, [sliderValue, shuffledCodes, mappings, cellMap]);
+  }, [sliderValue, orderedCellIds, mappings, cellMap]);
 
   return (
     <div id="view-public">
@@ -216,70 +229,79 @@ export default function PublicDashboard({ initialData }) {
             <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                 <span>0</span>
-                <span style={{ fontWeight: 'bold' }}>
-                  {sliderValue === TOTAL_PIECES ? 'Full Map Preview' : `${Math.min(sliderValue, activeCodes.length)} / ${activeCodes.length} pieces`}
+                <span 
+                  style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                  onClick={() => setSliderValue(activeCodes.length)}
+                  title="Click to snap to known pieces"
+                >
+                  {sliderValue > TOTAL_PIECES ? 'Full Map Preview' : (
+                    <>
+                      {sliderValue} / {activeCodes.length} pieces
+                      {sliderValue > activeCodes.length && ` (+${sliderValue - activeCodes.length} missing added)`}
+                    </>
+                  )}
                 </span>
-                <span>{TOTAL_PIECES}</span>
+                <span>Full Map</span>
               </div>
-              <input 
-                type="range" 
-                min="0" 
-                max={TOTAL_PIECES} 
-                value={sliderValue} 
-                onChange={(e) => setSliderValue(Number(e.target.value))} 
+              <input
+                type="range"
+                min="0"
+                max={TOTAL_PIECES + 1}
+                value={sliderValue}
+                onChange={(e) => setSliderValue(Number(e.target.value))}
                 style={{ width: '100%', cursor: 'pointer' }}
               />
             </div>
           )}
 
           <div style={{ position: 'relative', width: '100%', margin: '0 auto', maxWidth: '100%' }}>
-              <div 
-                id="shattered-board-grid" 
-                className="shattered-board-grid" 
-                data-day={activeDay} 
-                data-cols="48" 
-                data-rows="27"
-                style={{ display: (mappings && sliderValue < TOTAL_PIECES && activeCodes.length > 0) ? 'grid' : 'none' }}
-              >
-                {cells}
-              </div>
+            <div
+              id="shattered-board-grid"
+              className="shattered-board-grid"
+              data-day={activeDay}
+              data-cols="48"
+              data-rows="27"
+              style={{ display: (mappings && sliderValue <= TOTAL_PIECES && activeCodes.length > 0) ? 'grid' : 'none' }}
+            >
+              {cells}
+            </div>
 
-              <div style={{ 
-                position: 'relative', 
-                width: '100%', 
-                aspectRatio: '16 / 9', 
-                margin: '0 auto',
-                display: (!mappings || sliderValue === TOTAL_PIECES || activeCodes.length === 0) ? 'block' : 'none'
-              }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/maps/day-${activeDay}.png`}
-                  alt={`Map for day ${activeDay}`}
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'contain',
-                    display: 'block',
-                    borderRadius: 'var(--radius)'
-                  }}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-                <div style={{ 
-                  display: 'none', 
-                  position: 'absolute', 
-                  inset: 0, 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  color: 'var(--text-muted)',
-                  border: '1px dashed var(--border)',
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '16 / 9',
+              margin: '0 auto',
+              display: (!mappings || sliderValue > TOTAL_PIECES || activeCodes.length === 0) ? 'block' : 'none'
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/maps/day-${activeDay}.png`}
+                alt={`Map for day ${activeDay}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  display: 'block',
                   borderRadius: 'var(--radius)'
-                }}>
-                  No map uploaded for day {activeDay} yet.
-                </div>
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div style={{
+                display: 'none',
+                position: 'absolute',
+                inset: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-muted)',
+                border: '1px dashed var(--border)',
+                borderRadius: 'var(--radius)'
+              }}>
+                No map uploaded for day {activeDay} yet.
               </div>
+            </div>
           </div>
         </div>
       </section>

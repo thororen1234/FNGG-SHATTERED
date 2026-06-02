@@ -9,9 +9,11 @@
     "check": "node check.js",
     "read": "node read.js",
     "harvest": "node harvest.js",
-    "fetch": "node fetch-images.js"
+    "fetch": "node fetch-images.js",
+    "slice": "node slice.js"
   },
   "dependencies": {
+    "sharp": "^0.34.5",
     "tesseract.js": "^7.0.0"
   }
 }

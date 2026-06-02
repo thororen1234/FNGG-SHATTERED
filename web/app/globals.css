@@ -263,6 +263,11 @@ h1, h2, h3 {
   opacity: 1;
 }
 
+.shattered-board-cell.missing-cell.filled {
+  opacity: 1;
+  filter: brightness(0.65);
+}
+
 .shattered-board-cell.filled:hover {
   z-index: 10;
 }
