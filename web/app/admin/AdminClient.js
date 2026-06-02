@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { logout, reviewSubmission, bulkPublish, clearDayCodes, toggleSetting, toggleLockedDay, uploadMap, deleteCode, manualSync } from '../actions';
 import { useRouter } from 'next/navigation';
 
@@ -12,6 +12,10 @@ export default function AdminClient({ initialData }) {
   const [viewingDay, setViewingDay] = useState(null);
   const router = useRouter();
 
+  useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
+
   const handleLogout = async () => {
     await logout();
     router.push('/login');
@@ -20,7 +24,7 @@ export default function AdminClient({ initialData }) {
   const handleReview = async (id, action) => {
     const res = await reviewSubmission(id, action);
     if (res.success) {
-      window.location.reload();
+      router.refresh();
     } else {
       alert(res.error);
     }
@@ -34,7 +38,7 @@ export default function AdminClient({ initialData }) {
     if (res.success) {
       alert(`Published ${res.added} new codes to Day ${bulkDay}`);
       setBulkCodes('');
-      window.location.reload();
+      router.refresh();
     } else {
       alert(res.error);
     }
@@ -43,7 +47,7 @@ export default function AdminClient({ initialData }) {
   const handleClearDay = async (day) => {
     if (confirm(`Clear ALL codes for Day ${day}? This cannot be undone.`)) {
       await clearDayCodes(day);
-      window.location.reload();
+      router.refresh();
     }
   };
 
@@ -62,7 +66,7 @@ export default function AdminClient({ initialData }) {
   const handleDeleteCode = async (day, code) => {
     if (confirm(`Delete code ${code} from Day ${day}?`)) {
       await deleteCode(day, code);
-      window.location.reload();
+      router.refresh();
     }
   };
 
@@ -71,7 +75,7 @@ export default function AdminClient({ initialData }) {
       const res = await manualSync();
       if (res.success) {
         alert('Manual sync completed!');
-        window.location.reload();
+        router.refresh();
       } else {
         alert('Error: ' + res.error);
       }
@@ -131,7 +135,20 @@ export default function AdminClient({ initialData }) {
       )}
 
       {activeTab === 'publish' && (
-        <section className="grid-2">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <section className="panel">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ marginBottom: '0.5rem' }}>Manual Synchronization</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>Force a manual sync of codes from the external source.</p>
+              </div>
+              <button className="button button-primary" onClick={handleManualSync}>
+                Trigger Manual Sync
+              </button>
+            </div>
+          </section>
+
+          <section className="grid-2">
           <div className="panel">
             <h2 style={{ marginBottom: '1rem' }}>Bulk Upload Codes</h2>
             <div style={{ marginBottom: '1rem' }}>
@@ -186,7 +203,8 @@ export default function AdminClient({ initialData }) {
               ))}
             </div>
           </div>
-        </section>
+          </section>
+        </div>
       )}
 
       {activeTab === 'map' && (
@@ -213,14 +231,6 @@ export default function AdminClient({ initialData }) {
           <h2 style={{ marginBottom: '1rem' }}>System Settings</h2>
 
           <div style={{ marginBottom: '2rem' }}>
-            <h3>Manual Synchronization</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>Force a manual sync of codes from the external source.</p>
-            <button className="button button-primary" onClick={handleManualSync}>
-              Trigger Manual Sync
-            </button>
-          </div>
-
-          <div style={{ marginBottom: '2rem' }}>
             <h3>Auto-Approval</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>Automatically approve submissions on unlocked days.</p>
             <button
@@ -228,7 +238,7 @@ export default function AdminClient({ initialData }) {
               style={{ borderColor: data.settings.autoApproval ? 'var(--success)' : 'var(--border)' }}
               onClick={async () => {
                 await toggleSetting('autoApproval');
-                window.location.reload();
+                router.refresh();
               }}
             >
               {data.settings.autoApproval ? 'Enabled' : 'Disabled'}
@@ -248,7 +258,7 @@ export default function AdminClient({ initialData }) {
                     style={{ borderColor: isLocked ? 'var(--danger)' : 'var(--border)', color: isLocked ? 'var(--danger)' : 'var(--text)' }}
                     onClick={async () => {
                       await toggleLockedDay(d);
-                      window.location.reload();
+                      router.refresh();
                     }}
                   >
                     Day {d} {isLocked ? '(Locked)' : ''}

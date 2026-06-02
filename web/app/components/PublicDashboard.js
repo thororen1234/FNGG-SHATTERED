@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { submitCode } from '../actions';
 
 export default function PublicDashboard({ initialData }) {
+  const router = useRouter();
   const [activeDay, setActiveDay] = useState(1);
   const [data, setData] = useState(initialData);
+
+  useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [submitRaw, setSubmitRaw] = useState('');
@@ -50,7 +57,7 @@ export default function PublicDashboard({ initialData }) {
       alert(res.autoApproved ? 'Code auto-approved and published!' : 'Submitted for review. Thanks!');
       setSubmitRaw('');
       if (res.autoApproved) {
-        window.location.reload();
+        router.refresh();
       }
     } else {
       alert(res.error);
