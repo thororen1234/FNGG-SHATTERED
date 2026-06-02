@@ -28,7 +28,17 @@ async function ensureDataFile() {
 export async function getData() {
   await ensureDataFile();
   const content = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(content);
+  try {
+    return JSON.parse(content);
+  } catch (err) {
+    console.error('Failed to parse data.json, returning default data:', err);
+    return {
+      days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
+      submissions: [],
+      settings: { autoApproval: false, lockedDays: [] },
+      updatedAt: new Date().toISOString()
+    };
+  }
 }
 
 export async function saveData(data) {

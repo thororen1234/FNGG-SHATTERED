@@ -19,6 +19,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .env*
-.vercel 
+.vercel
 *.tsbuildinfo
 next-env.d.ts
+*-deployment.yaml
