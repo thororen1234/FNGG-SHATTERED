@@ -7,6 +7,7 @@ import { submitCode } from '../actions';
 export default function PublicDashboard({ initialData }) {
   const router = useRouter();
   const [activeDay, setActiveDay] = useState(1);
+  const [isRawView, setIsRawView] = useState(false);
   const data = initialData;
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function PublicDashboard({ initialData }) {
   const [submitRaw, setSubmitRaw] = useState('');
 
   const days = [1, 2, 3, 4, 5, 6];
-  const activeCodes = data.days[String(activeDay)] || [];
+  const activeCodes = [...(data.days[String(activeDay)] || [])].sort();
   const isLocked = data?.settings?.lockedDays?.includes(activeDay);
 
   const handleSearch = (e) => {
@@ -118,7 +119,7 @@ export default function PublicDashboard({ initialData }) {
                 color: isActive ? 'var(--primary)' : 'var(--text)'
               }}
             >
-              <span>Day {d} {isDayLocked && '🔒'}</span>
+              <span>Day {d}</span>
               <strong style={{ marginLeft: '0.5rem' }}>{count}</strong>
             </button>
           );
@@ -140,23 +141,17 @@ export default function PublicDashboard({ initialData }) {
           textAlign: 'center',
           overflow: 'hidden'
         }}>
-          {isLocked ? (
-            <div style={{ color: 'var(--text-muted)' }}>This day is currently locked.</div>
-          ) : (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/maps/day-${activeDay}.png`}
-                alt={`Map for day ${activeDay}`}
-                style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
-              />
-              <span style={{ display: 'none', color: 'var(--text-muted)' }}>No map uploaded for day {activeDay} yet.</span>
-            </>
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/maps/day-${activeDay}.png`}
+            alt={`Map for day ${activeDay}`}
+            style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'block';
+            }}
+          />
+          <span style={{ display: 'none', color: 'var(--text-muted)' }}>No map uploaded for day {activeDay} yet.</span>
         </div>
       </section>
 
@@ -216,16 +211,24 @@ export default function PublicDashboard({ initialData }) {
             <span className="eyebrow">Day {activeDay}</span>
             <h2>Published lines</h2>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button className={`button ${isRawView ? 'button-primary' : ''}`} onClick={() => setIsRawView(!isRawView)}>Raw</button>
             <a href={`/api/raw?day=${activeDay}`} target="_blank" rel="noreferrer" className="button">API raw</a>
+            <a href="/api/raw?day=all" target="_blank" rel="noreferrer" className="button">API raw (All)</a>
             <button className="button button-primary" onClick={copyAll} disabled={activeCodes.length === 0}>Copy All</button>
           </div>
         </div>
 
-        {isLocked ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>This day is locked.</div>
-        ) : activeCodes.length === 0 ? (
+        {activeCodes.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No codes published for this day yet.</div>
+        ) : isRawView ? (
+          <textarea
+            readOnly
+            className="input"
+            style={{ width: '100%', height: '300px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '14px', lineHeight: '1.5' }}
+            value={activeCodes.join('\n')}
+            onFocus={(e) => e.target.select()}
+          />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {activeCodes.map(code => (

@@ -19,7 +19,6 @@ export default function RootLayout({ children }) {
             </a>
             <nav aria-label="Main navigation" className="mainnav">
               <a href="/">Public</a>
-              <a href="/raw">Raw</a>
               <a href="/admin">Admin</a>
             </nav>
           </header>

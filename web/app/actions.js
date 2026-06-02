@@ -69,7 +69,8 @@ export async function submitCode(formData) {
     submission.reviewedAt = new Date().toISOString();
 
     if (!data.days[String(day)]) data.days[String(day)] = [];
-    data.days[String(day)].unshift(code);
+    data.days[String(day)].push(code);
+    data.days[String(day)].sort();
   }
 
   data.submissions.unshift(submission);
@@ -90,7 +91,8 @@ export async function reviewSubmission(id, action) {
     const d = String(sub.day);
     if (!data.days[d]) data.days[d] = [];
     if (!data.days[d].includes(sub.code)) {
-      data.days[d].unshift(sub.code);
+      data.days[d].push(sub.code);
+      data.days[d].sort();
     }
   }
 
@@ -114,9 +116,13 @@ export async function bulkPublish(formData) {
   let added = 0;
   for (const c of codes) {
     if (!data.days[day].includes(c)) {
-      data.days[day].unshift(c);
+      data.days[day].push(c);
       added++;
     }
+  }
+
+  if (added > 0) {
+    data.days[day].sort();
   }
 
   await saveData(data);

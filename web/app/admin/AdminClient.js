@@ -10,6 +10,7 @@ export default function AdminClient({ initialData }) {
   const [bulkDay, setBulkDay] = useState(1);
   const [bulkCodes, setBulkCodes] = useState('');
   const [viewingDay, setViewingDay] = useState(null);
+  const [rawViewDays, setRawViewDays] = useState({});
   const router = useRouter();
 
   useEffect(() => {
@@ -136,49 +137,55 @@ export default function AdminClient({ initialData }) {
 
       {activeTab === 'publish' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <section className="panel">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h2 style={{ marginBottom: '0.5rem' }}>Manual Synchronization</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>Force a manual sync of codes from the external source.</p>
+          <section className="grid-2">
+            <div className="panel">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <h2 style={{ marginBottom: '0.5rem' }}>Manual Synchronization</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>Force a manual sync of codes from the external source.</p>
+                </div>
+                <button className="button button-primary" onClick={handleManualSync}>
+                  Trigger Manual Sync
+                </button>
               </div>
-              <button className="button button-primary" onClick={handleManualSync}>
-                Trigger Manual Sync
-              </button>
+            </div>
+
+            <div className="panel">
+              <h2 style={{ marginBottom: '1rem' }}>Bulk Upload Codes</h2>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Target Day</label>
+                <select className="input" value={bulkDay} onChange={e => setBulkDay(e.target.value)}>
+                  {[1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d}>Day {d}</option>)}
+                </select>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Codes (one per line)</label>
+                <textarea
+                  className="input"
+                  style={{ height: '200px', resize: 'vertical', fontFamily: 'var(--font-mono)' }}
+                  value={bulkCodes}
+                  onChange={e => setBulkCodes(e.target.value)}
+                  placeholder="XXXX-XXXX-XXXX&#10;XXXX-XXXX-XXXX"
+                />
+              </div>
+              <button className="button button-primary" onClick={handleBulkPublish}>Publish</button>
             </div>
           </section>
 
-          <section className="grid-2">
-          <div className="panel">
-            <h2 style={{ marginBottom: '1rem' }}>Bulk Upload Codes</h2>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Target Day</label>
-              <select className="input" value={bulkDay} onChange={e => setBulkDay(e.target.value)}>
-                {[1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d}>Day {d}</option>)}
-              </select>
+          <section className="panel">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ marginBottom: 0 }}>Day Overview</h2>
+              <a href="/api/raw?day=all" target="_blank" rel="noreferrer" className="button">API raw (All)</a>
             </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Codes (one per line)</label>
-              <textarea
-                className="input"
-                style={{ height: '200px', resize: 'vertical', fontFamily: 'var(--font-mono)' }}
-                value={bulkCodes}
-                onChange={e => setBulkCodes(e.target.value)}
-                placeholder="XXXX-XXXX-XXXX&#10;XXXX-XXXX-XXXX"
-              />
-            </div>
-            <button className="button button-primary" onClick={handleBulkPublish}>Publish</button>
-          </div>
-
-          <div className="panel">
-            <h2 style={{ marginBottom: '1rem' }}>Day Overview</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {[1, 2, 3, 4, 5, 6].map(d => (
                 <div key={d} style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem' }}>
                     <span>Day {d}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{(data.days[String(d)] || []).length} codes</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ color: 'var(--primary)', fontWeight: 'bold', marginRight: '0.5rem' }}>{(data.days[String(d)] || []).length} codes</span>
+                      <button className={`button ${rawViewDays[d] ? 'button-primary' : ''}`} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => setRawViewDays(p => ({...p, [d]: !p[d]}))}>Raw</button>
+                      <a href={`/api/raw?day=${d}`} target="_blank" rel="noreferrer" className="button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>API raw</a>
                       <button className="button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => setViewingDay(viewingDay === d ? null : d)}>
                         {viewingDay === d ? 'Hide' : 'View'}
                       </button>
@@ -189,11 +196,35 @@ export default function AdminClient({ initialData }) {
                     <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border)', maxHeight: '300px', overflowY: 'auto' }}>
                       {(data.days[String(d)] || []).length === 0 ? (
                         <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>No codes for this day.</p>
+                      ) : rawViewDays[d] ? (
+                        <textarea
+                          readOnly
+                          className="input"
+                          style={{ width: '100%', height: '300px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '14px', lineHeight: '1.5' }}
+                          value={(data.days[String(d)] || []).join('\n')}
+                          onFocus={(e) => e.target.select()}
+                        />
                       ) : (
                         (data.days[String(d)] || []).map(code => (
-                          <div key={code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0' }}>
-                            <code style={{ fontSize: '0.875rem' }}>{code}</code>
-                            <button className="button button-danger" style={{ padding: '0.1rem 0.4rem', fontSize: '0.7rem' }} onClick={() => handleDeleteCode(d, code)}>Delete</button>
+                          <div key={code} style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '0.75rem 1rem',
+                            backgroundColor: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius)',
+                            fontFamily: 'var(--font-mono)',
+                            marginBottom: '0.5rem'
+                          }}>
+                            <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{code}</span>
+                            <button
+                              className="button button-danger"
+                              style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}
+                              onClick={() => handleDeleteCode(d, code)}
+                            >
+                              Delete
+                            </button>
                           </div>
                         ))
                       )}
@@ -202,7 +233,6 @@ export default function AdminClient({ initialData }) {
                 </div>
               ))}
             </div>
-          </div>
           </section>
         </div>
       )}

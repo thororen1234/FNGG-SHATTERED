@@ -23,6 +23,12 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
 }
 
 body {
@@ -174,6 +180,29 @@ h1, h2, h3 {
 .input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary);
+}
+
+.input[type="file"] {
+  padding: 0.35rem 0.5rem;
+  color: var(--text-muted);
+}
+
+.input[type="file"]::file-selector-button {
+  background-color: var(--bg-panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 1rem;
+  transition: all 0.2s ease;
+}
+
+.input[type="file"]::file-selector-button:hover {
+  background-color: var(--bg-panel-hover);
+  border-color: var(--text-muted);
 }
 
 .panel {
