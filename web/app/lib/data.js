@@ -8,6 +8,9 @@ const defaultData = {
   days: {
     "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
   },
+  syncedCodes: {
+    "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
+  },
   submissions: [],
   settings: {
     autoApproval: false,
@@ -29,11 +32,16 @@ export async function getData() {
   await ensureDataFile();
   const content = await fs.readFile(DATA_FILE, 'utf-8');
   try {
-    return JSON.parse(content);
+    const parsed = JSON.parse(content);
+    if (!parsed.syncedCodes) {
+      parsed.syncedCodes = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
+    }
+    return parsed;
   } catch (err) {
     console.error('Failed to parse data.json, returning default data:', err);
     return {
       days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
+      syncedCodes: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
       submissions: [],
       settings: { autoApproval: false, lockedDays: [] },
       updatedAt: new Date().toISOString()
