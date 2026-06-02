@@ -150,24 +150,29 @@ export async function toggleLockedDay(day) {
 }
 
 export async function uploadMap(formData) {
-  const day = formData.get('day');
-  const file = formData.get('file');
+  try {
+    const day = formData.get('day');
+    const file = formData.get('file');
 
-  if (!file || file.size === 0) {
-    return { success: false, error: 'No file provided' };
+    if (!file || file.size === 0) {
+      return { success: false, error: 'No file provided' };
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const mapsDir = path.join(process.cwd(), 'uploaded', 'maps');
+    await fs.mkdir(mapsDir, { recursive: true });
+
+    const ext = path.extname(file.name) || '.png';
+    const filename = `day-${day}${ext}`;
+    const filepath = path.join(mapsDir, filename);
+
+    await fs.writeFile(filepath, buffer);
+
+    return { success: true, url: `/api/maps/${filename}?t=${Date.now()}` };
+  } catch (err) {
+    console.error('Upload map error:', err);
+    return { success: false, error: err.message || String(err) };
   }
-
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const mapsDir = path.join(process.cwd(), 'uploaded', 'maps');
-  await fs.mkdir(mapsDir, { recursive: true });
-
-  const ext = path.extname(file.name) || '.png';
-  const filename = `day-${day}${ext}`;
-  const filepath = path.join(mapsDir, filename);
-
-  await fs.writeFile(filepath, buffer);
-
-  return { success: true, url: `/api/maps/${filename}?t=${Date.now()}` };
 }
