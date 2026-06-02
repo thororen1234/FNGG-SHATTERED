@@ -27,6 +27,7 @@ export default function PublicDashboard({ initialData }) {
 
   const days = [1, 2, 3, 4, 5, 6];
   const activeCodes = data.days[String(activeDay)] || [];
+  const isLocked = data?.settings?.lockedDays?.includes(activeDay);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -105,6 +106,7 @@ export default function PublicDashboard({ initialData }) {
         {days.map(d => {
           const count = (data.days[String(d)] || []).length;
           const isActive = activeDay === d;
+          const isDayLocked = data?.settings?.lockedDays?.includes(d);
           return (
             <button
               key={d}
@@ -116,7 +118,7 @@ export default function PublicDashboard({ initialData }) {
                 color: isActive ? 'var(--primary)' : 'var(--text)'
               }}
             >
-              <span>Day {d}</span>
+              <span>Day {d} {isDayLocked && '🔒'}</span>
               <strong style={{ marginLeft: '0.5rem' }}>{count}</strong>
             </button>
           );
@@ -138,17 +140,23 @@ export default function PublicDashboard({ initialData }) {
           textAlign: 'center',
           overflow: 'hidden'
         }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/api/maps/day-${activeDay}.png`}
-            alt={`Map for day ${activeDay}`}
-            style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'block';
-            }}
-          />
-          <span style={{ display: 'none', color: 'var(--text-muted)' }}>No map uploaded for day {activeDay} yet.</span>
+          {isLocked ? (
+            <div style={{ color: 'var(--text-muted)' }}>This day is currently locked.</div>
+          ) : (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/maps/day-${activeDay}.png`}
+                alt={`Map for day ${activeDay}`}
+                style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <span style={{ display: 'none', color: 'var(--text-muted)' }}>No map uploaded for day {activeDay} yet.</span>
+            </>
+          )}
         </div>
       </section>
 
@@ -189,12 +197,15 @@ export default function PublicDashboard({ initialData }) {
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <input
               className="input"
-              placeholder="XXXX-XXXX-XXXX"
+              placeholder={isLocked ? "Submissions are locked" : "XXXX-XXXX-XXXX"}
               maxLength="14"
               value={submitRaw}
               onChange={e => setSubmitRaw(e.target.value.toUpperCase())}
+              disabled={isLocked}
             />
-            <button type="submit" className="button button-primary">Submit</button>
+            <button type="submit" className="button button-primary" disabled={isLocked}>
+              Submit
+            </button>
           </div>
         </form>
       </div>
@@ -211,7 +222,9 @@ export default function PublicDashboard({ initialData }) {
           </div>
         </div>
 
-        {activeCodes.length === 0 ? (
+        {isLocked ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>This day is locked.</div>
+        ) : activeCodes.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No codes published for this day yet.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

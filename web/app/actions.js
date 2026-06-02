@@ -11,7 +11,7 @@ import path from 'path';
 export async function login(formData) {
   const password = formData.get('password');
   if (await verifyPassword(password)) {
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const session = await encrypt({ admin: true, expires });
     const cookieStore = await cookies();
     cookieStore.set('admin_session', session, {
@@ -36,7 +36,6 @@ export async function submitCode(formData) {
 
   if (!rawCode) return { success: false, error: 'Code is required' };
 
-  // Basic normalization
   const code = rawCode.trim().toUpperCase();
   if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) {
     return { success: false, error: 'Invalid code format. Use XXXX-XXXX-XXXX' };
@@ -44,12 +43,14 @@ export async function submitCode(formData) {
 
   const data = await getData();
 
-  // Check if already published
+  if (data.settings?.lockedDays?.includes(day)) {
+    return { success: false, error: 'Submissions are currently locked for this day.' };
+  }
+
   if (data.days[String(day)]?.includes(code)) {
     return { success: false, error: 'Code already published for this day.' };
   }
 
-  // Check if duplicate submission
   if (data.submissions.find(s => s.code === code && s.day === day)) {
     return { success: false, error: 'Code already submitted and pending review.' };
   }
@@ -62,7 +63,6 @@ export async function submitCode(formData) {
     createdAt: new Date().toISOString()
   };
 
-  // Auto approve check
   if (data.settings.autoApproval && !data.settings.lockedDays.includes(day)) {
     submission.status = 'approved';
     submission.reviewedBy = 'system';
@@ -78,7 +78,6 @@ export async function submitCode(formData) {
 }
 
 export async function reviewSubmission(id, action) {
-  // requires admin session check here or in the component calling it
   const data = await getData();
   const sub = data.submissions.find(s => s.id === id);
   if (!sub) return { success: false, error: 'Not found' };
