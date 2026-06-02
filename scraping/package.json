@@ -9,7 +9,7 @@
     "check": "node check.js",
     "read": "node read.js",
     "harvest": "node harvest.js",
-    "fetch": "node fetch-images.js",
+    "fetch": "node fetch.js",
     "slice": "node slice.js"
   },
   "dependencies": {
