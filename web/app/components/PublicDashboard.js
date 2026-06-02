@@ -6,13 +6,40 @@ import { submitCode } from '../actions';
 
 export default function PublicDashboard({ initialData }) {
   const router = useRouter();
+
   const [activeDay, setActiveDay] = useState(1);
   const [isRawView, setIsRawView] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const data = initialData;
 
   const TOTAL_PIECES = 1296;
-  const [sliderValue, setSliderValue] = useState(TOTAL_PIECES + 1);
+  const initialCount = (initialData?.days?.[String(activeDay)] || []).length;
+  const [sliderValue, setSliderValue] = useState(initialCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : initialCount);
   const [mappings, setMappings] = useState(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setMounted(true);
+      const saved = localStorage.getItem('fngg_active_day');
+
+      if (saved) {
+        const savedDay = Number(saved);
+
+        if (savedDay !== 1) {
+          setActiveDay(savedDay);
+        }
+
+        const isDayLocked = initialData?.settings?.lockedDays?.includes(savedDay);
+        const nextCount = (initialData?.days?.[String(savedDay)] || []).length;
+
+        if (isDayLocked) {
+          setSliderValue(TOTAL_PIECES + 1);
+        } else {
+          setSliderValue(nextCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : nextCount);
+        }
+      }
+    }, 0);
+  }, [initialData]);
 
   useEffect(() => {
     fetch(`/api/mappings/day-${activeDay}.json`)
@@ -21,17 +48,18 @@ export default function PublicDashboard({ initialData }) {
       .catch(err => setMappings(null));
   }, [activeDay]);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('fngg_active_day');
-    if (saved) {
-      setTimeout(() => setActiveDay(Number(saved)), 0);
-    }
-  }, []);
-
   const handleDayChange = (d) => {
     setActiveDay(d);
     localStorage.setItem('fngg_active_day', d);
-    setSliderValue(TOTAL_PIECES + 1);
+
+    const isDayLocked = data?.settings?.lockedDays?.includes(d);
+    const nextCount = (data?.days?.[String(d)] || []).length;
+
+    if (isDayLocked) {
+      setSliderValue(TOTAL_PIECES + 1);
+    } else {
+      setSliderValue(nextCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : nextCount);
+    }
   };
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,21 +156,24 @@ export default function PublicDashboard({ initialData }) {
       for (let c = 0; c < 48; c++) {
         const code = cellMap[`${c},${r}`];
         const isMissing = code && code.startsWith('missing');
+        const hasKnownPiece = code && activeCodes.includes(code);
+        const shouldRenderImage = hasKnownPiece || isMissing;
+
         elements.push(
           <div
             key={`${c},${r}`}
             id={code ? `cell-${code}` : `cell-empty-${c}-${r}`}
-            className={`shattered-board-cell ${isMissing ? 'missing-cell' : ''}`}
+            className={`shattered-board-cell ${isMissing ? 'missing-cell' : ''} ${hasKnownPiece ? 'valid-fragment' : ''}`}
             data-tooltip={(!isMissing && code) ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : `Code wasn't found\nRow ${r + 1}, Column ${c + 1}`}
             style={{
-              backgroundImage: code ? `url(/api/images/day-${activeDay}/${code}.webp)` : 'none'
+              backgroundImage: shouldRenderImage ? `url(/api/images/day-${activeDay}/${code}.webp)` : 'none'
             }}
           />
         );
       }
     }
     return elements;
-  }, [mappings, activeDay, cellMap]);
+  }, [mappings, activeDay, cellMap, activeCodes]);
 
   const orderedCellIds = useMemo(() => {
     const knownIds = shuffledCodes.map(code => `cell-${code}`);
@@ -155,7 +186,7 @@ export default function PublicDashboard({ initialData }) {
       });
     }
     return [...knownIds, ...missingIds];
-  }, [shuffledCodes, mappings, cellMap]);
+  }, [shuffledCodes, mappings]);
 
   useLayoutEffect(() => {
     const visibleSet = new Set(orderedCellIds.slice(0, sliderValue));
@@ -182,8 +213,10 @@ export default function PublicDashboard({ initialData }) {
 
         <div className="grid-2" style={{ marginTop: '1.5rem', gap: '1rem' }}>
           <div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>{activeCodes.length}</div>
-            <div className="eyebrow">day {activeDay} lines</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>
+              {mounted ? activeCodes.length : (data.days['1'] || []).length}
+            </div>
+            <div className="eyebrow">day {mounted ? activeDay : 1} lines</div>
           </div>
         </div>
       </section>
@@ -191,8 +224,7 @@ export default function PublicDashboard({ initialData }) {
       <nav style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
         {days.map(d => {
           const count = (data.days[String(d)] || []).length;
-          const isActive = activeDay === d;
-          const isDayLocked = data?.settings?.lockedDays?.includes(d);
+          const isActive = mounted ? (activeDay === d) : (d === 1);
           return (
             <button
               key={d}
@@ -214,7 +246,7 @@ export default function PublicDashboard({ initialData }) {
       <section className="panel" style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <span className="eyebrow">Day {activeDay}</span>
+            <span className="eyebrow">Day {mounted ? activeDay : 1}</span>
             <h2>Current map</h2>
           </div>
         </div>
@@ -231,13 +263,12 @@ export default function PublicDashboard({ initialData }) {
                 <span>0</span>
                 <span
                   style={{ fontWeight: 'bold', cursor: 'pointer' }}
-                  onClick={() => setSliderValue(activeCodes.length)}
+                  onClick={() => setSliderValue(activeCodes.length === TOTAL_PIECES ? TOTAL_PIECES + 1 : activeCodes.length)}
                   title="Click to snap to known pieces"
                 >
                   {sliderValue > TOTAL_PIECES ? 'Full Map Preview' : (
                     <>
                       {sliderValue} / {activeCodes.length} pieces
-                      {sliderValue > activeCodes.length && ` (+${sliderValue - activeCodes.length} missing added)`}
                     </>
                   )}
                 </span>
@@ -275,8 +306,8 @@ export default function PublicDashboard({ initialData }) {
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/api/maps/day-${activeDay}.png`}
-                alt={`Map for day ${activeDay}`}
+                src={`/api/maps/day-${mounted ? activeDay : 1}.png`}
+                alt={`Map for day ${mounted ? activeDay : 1}`}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -299,7 +330,7 @@ export default function PublicDashboard({ initialData }) {
                 border: '1px dashed var(--border)',
                 borderRadius: 'var(--radius)'
               }}>
-                No map uploaded for day {activeDay} yet.
+                No map uploaded for day {mounted ? activeDay : 1} yet.
               </div>
             </div>
           </div>
@@ -338,7 +369,7 @@ export default function PublicDashboard({ initialData }) {
         <form className="panel" onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
             <span className="eyebrow">Request</span>
-            <h2>Submit for day {activeDay}</h2>
+            <h2>Submit for day {mounted ? activeDay : 1}</h2>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <input
@@ -359,12 +390,12 @@ export default function PublicDashboard({ initialData }) {
       <section className="panel">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <span className="eyebrow">Day {activeDay}</span>
+            <span className="eyebrow">Day {mounted ? activeDay : 1}</span>
             <h2>Published lines</h2>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button className={`button ${isRawView ? 'button-primary' : ''}`} onClick={() => setIsRawView(!isRawView)}>Raw</button>
-            <a href={`/api/raw?day=${activeDay}`} target="_blank" rel="noreferrer" className="button">API raw</a>
+            <a href={`/api/raw?day=${mounted ? activeDay : 1}`} target="_blank" rel="noreferrer" className="button">API raw</a>
             <a href="/api/raw?day=all" target="_blank" rel="noreferrer" className="button">API raw (All)</a>
             <button className="button button-primary" onClick={copyAll} disabled={activeCodes.length === 0}>Copy All</button>
           </div>
@@ -408,7 +439,7 @@ export default function PublicDashboard({ initialData }) {
       </section>
 
       <footer style={{ marginTop: '3rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        <p>Software endpoint: <code style={{ color: 'var(--primary)' }}>/api/raw?day={activeDay}</code></p>
+        <p>Software endpoint: <code style={{ color: 'var(--primary)' }}>/api/raw?day={mounted ? activeDay : 1}</code></p>
       </footer>
     </div>
   );
