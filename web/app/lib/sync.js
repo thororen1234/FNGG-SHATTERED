@@ -6,19 +6,41 @@ export async function syncAllDays() {
   const data = await getData();
   let updated = false;
 
-  for (let day = 1; day <= 6; day++) {
-    try {
-      const res = await fetch(`https://fn-shattered-codes.vercel.app/api/raw?day=${day}`);
-      if (!res.ok) continue;
+  try {
+    const res = await fetch('https://fn-shattered-codes.vercel.app/api/raw?day=all');
+    if (!res.ok) {
+      console.error('Failed to fetch all days, status:', res.status);
+      return;
+    }
 
-      const text = await res.text();
-      const rawCodes = text.split('\n')
-        .map(c => c.trim().toUpperCase())
-        .filter(c => /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(c));
+    const text = await res.text();
+    const lines = text.split('\n').map(l => l.trim().toUpperCase());
 
+    const fetchedDays = {};
+    let currentDay = null;
+
+    for (const line of lines) {
+      if (line.startsWith('# DAY ')) {
+        currentDay = line.replace('# DAY ', '').trim();
+        fetchedDays[currentDay] = [];
+      } else if (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(line)) {
+        if (currentDay) {
+          fetchedDays[currentDay].push(line);
+        }
+      }
+    }
+
+    if (Object.keys(fetchedDays).length === 0) {
+      console.error('Sync failed: No valid day blocks found in the API response.');
+      return;
+    }
+
+    for (const day of Object.keys(fetchedDays)) {
+      const rawCodes = fetchedDays[day];
       const newSyncedCodes = Array.from(new Set(rawCodes));
-      const currentCodes = data.days[String(day)] || [];
-      const previouslySynced = data.syncedCodes[String(day)] || [];
+      const currentCodes = data.days[day] || [];
+      const previouslySynced = data.syncedCodes[day] || [];
+
       const manuallyAdded = currentCodes.filter(c => !previouslySynced.includes(c));
       const mergedCodes = Array.from(new Set([...newSyncedCodes, ...manuallyAdded]));
 
@@ -28,13 +50,15 @@ export async function syncAllDays() {
         newSyncedCodes.length !== previouslySynced.length ||
         !newSyncedCodes.every(c => previouslySynced.includes(c))
       ) {
-        data.days[String(day)] = mergedCodes;
-        data.syncedCodes[String(day)] = newSyncedCodes;
+        if (!data.days) data.days = {};
+        if (!data.syncedCodes) data.syncedCodes = {};
+        data.days[day] = mergedCodes;
+        data.syncedCodes[day] = newSyncedCodes;
         updated = true;
       }
-    } catch (err) {
-      console.error(`Failed to sync day ${day}:`, err);
     }
+  } catch (err) {
+    console.error('Failed to sync all days:', err);
   }
 
   if (updated) {

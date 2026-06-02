@@ -8,7 +8,8 @@
   "scripts": {
     "check": "node check.js",
     "read": "node read.js",
-    "harvest": "node harvest.js"
+    "harvest": "node harvest.js",
+    "fetch": "node fetch-images.js"
   },
   "dependencies": {
     "tesseract.js": "^7.0.0"

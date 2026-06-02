@@ -10,6 +10,17 @@ export default function PublicDashboard({ initialData }) {
   const [isRawView, setIsRawView] = useState(false);
   const data = initialData;
 
+  const TOTAL_PIECES = 1296;
+  const [sliderValue, setSliderValue] = useState(TOTAL_PIECES);
+  const [mappings, setMappings] = useState(null);
+
+  useEffect(() => {
+    fetch(`/mappings/day-${activeDay}.json`)
+      .then(res => res.json())
+      .then(data => setMappings(data))
+      .catch(err => setMappings(null));
+  }, [activeDay]);
+
   useEffect(() => {
     const saved = localStorage.getItem('fngg_active_day');
     if (saved) {
@@ -20,6 +31,7 @@ export default function PublicDashboard({ initialData }) {
   const handleDayChange = (d) => {
     setActiveDay(d);
     localStorage.setItem('fngg_active_day', d);
+    setSliderValue(TOTAL_PIECES);
   };
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +40,16 @@ export default function PublicDashboard({ initialData }) {
 
   const days = [1, 2, 3, 4, 5, 6];
   const activeCodes = [...(data.days[String(activeDay)] || [])].sort();
+  
+  const hashStr = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = Math.imul(31, hash) + str.charCodeAt(i) | 0;
+    }
+    return hash;
+  };
+  const shuffledCodes = [...activeCodes].sort((a, b) => hashStr(a) - hashStr(b));
+
   const isLocked = data?.settings?.lockedDays?.includes(activeDay);
 
   const handleSearch = (e) => {
@@ -89,6 +111,34 @@ export default function PublicDashboard({ initialData }) {
     } catch (err) { }
   };
 
+  const visibleCodes = new Set(shuffledCodes.slice(0, sliderValue));
+  const cellMap = {};
+  if (mappings) {
+    Object.entries(mappings).forEach(([code, coords]) => {
+      cellMap[`${coords[0]},${coords[1]}`] = code;
+    });
+  }
+
+  const cells = [];
+  if (mappings) {
+    for (let r = 0; r < 27; r++) {
+      for (let c = 0; c < 48; c++) {
+        const code = cellMap[`${c},${r}`];
+        const isVisible = code && visibleCodes.has(code);
+        cells.push(
+          <div 
+            key={`${c},${r}`} 
+            className={`shattered-board-cell ${isVisible ? 'filled' : ''}`}
+            data-tooltip={code ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : `Row ${r + 1}, Column ${c + 1}`}
+            style={{
+              backgroundImage: isVisible ? `url(/images/day-${activeDay}/${code}.webp)` : 'none'
+            }}
+          />
+        );
+      }
+    }
+  }
+
   return (
     <div id="view-public">
       <section className="panel" style={{ marginBottom: '2rem' }}>
@@ -141,17 +191,64 @@ export default function PublicDashboard({ initialData }) {
           textAlign: 'center',
           overflow: 'hidden'
         }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/api/maps/day-${activeDay}.png`}
-            alt={`Map for day ${activeDay}`}
-            style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'block';
-            }}
-          />
-          <span style={{ display: 'none', color: 'var(--text-muted)' }}>No map uploaded for day {activeDay} yet.</span>
+          {activeCodes.length > 0 && (
+            <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                <span>0</span>
+                <span style={{ fontWeight: 'bold' }}>
+                  {sliderValue === TOTAL_PIECES ? 'Full Map Preview' : `${Math.min(sliderValue, activeCodes.length)} / ${activeCodes.length} pieces`}
+                </span>
+                <span>{TOTAL_PIECES}</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max={TOTAL_PIECES} 
+                value={sliderValue} 
+                onChange={(e) => setSliderValue(Number(e.target.value))} 
+                style={{ width: '100%', cursor: 'pointer' }}
+              />
+            </div>
+          )}
+
+          <div style={{ position: 'relative', width: '100%', margin: '0 auto', maxWidth: '100%' }}>
+            {mappings && sliderValue < TOTAL_PIECES && activeCodes.length > 0 ? (
+              <div id="shattered-board-grid" className="shattered-board-grid" data-day={activeDay} data-cols="48" data-rows="27">
+                {cells}
+              </div>
+            ) : (
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', margin: '0 auto' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/maps/day-${activeDay}.png`}
+                  alt={`Map for day ${activeDay}`}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'contain',
+                    display: 'block',
+                    borderRadius: 'var(--radius)'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div style={{ 
+                  display: 'none', 
+                  position: 'absolute', 
+                  inset: 0, 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: 'var(--text-muted)',
+                  border: '1px dashed var(--border)',
+                  borderRadius: 'var(--radius)'
+                }}>
+                  No map uploaded for day {activeDay} yet.
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

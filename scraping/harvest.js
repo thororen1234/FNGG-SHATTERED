@@ -119,8 +119,8 @@ function getHeaders(extraReferer = null) {
 function loadCookies() {
   if (!existsSync(COOKIES_FILE)) {
     console.error(`\n${COOKIES_FILE} not found!`);
-    console.error('   Create cookies.txt and paste your browser cookie string into it.');
-    console.error('   (DevTools -> Network -> any x.com/i/api request -> Headers -> Cookie)');
+    console.error('Create cookies.txt and paste your browser cookie string into it.');
+    console.error('(DevTools -> Network -> any x.com/i/api request -> Headers -> Cookie)');
     process.exit(1);
   }
 
@@ -168,7 +168,7 @@ async function discoverQueryIds() {
     )].map(m => m[0]);
 
     if (jsUrls.length === 0) {
-      console.log('  WARNING: No JS bundle URLs found - using hardcoded query IDs');
+      console.log('WARNING: No JS bundle URLs found - using hardcoded query IDs');
       return;
     }
 
@@ -194,14 +194,14 @@ async function discoverQueryIds() {
 
     if (Object.keys(found).length > 0) {
       Object.assign(QUERY_IDS, found);
-      console.log(`  Discovered: ${JSON.stringify(found)}`);
+      console.log(`Discovered: ${JSON.stringify(found)}`);
     }
     if (needed.size > 0) {
-      console.log(`  WARNING: Could not discover query IDs for: ${[...needed].join(', ')} - those operations will be skipped`);
+      console.log(`WARNING: Could not discover query IDs for: ${[...needed].join(', ')} - those operations will be skipped`);
     }
 
   } catch (e) {
-    console.log(`  WARNING: Discovery failed (${e.message}) - using hardcoded query IDs`);
+    console.log(`WARNING: Discovery failed (${e.message}) - using hardcoded query IDs`);
   }
 }
 
@@ -229,13 +229,13 @@ async function waitForRateLimit(headers) {
     const resetMs = parseInt(resetEpoch, 10) * 1000;
     const waitSecs = Math.max(1, (resetMs - Date.now()) / 1000);
     const resetStr = new Date(resetMs).toISOString().slice(11, 19) + ' UTC';
-    console.log(`  Rate limited - sleeping ${waitSecs.toFixed(0)}s until ${resetStr}...`);
+    console.log(`Rate limited - sleeping ${waitSecs.toFixed(0)}s until ${resetStr}...`);
     await sleep(waitSecs * 1000 + 1000);
   } else if (retryAfter) {
-    console.log(`  Rate limited - retry-after ${retryAfter}s...`);
+    console.log(`Rate limited - retry-after ${retryAfter}s...`);
     await sleep((parseInt(retryAfter, 10) + 1) * 1000);
   } else {
-    console.log('  Rate limited - sleeping 60s...');
+    console.log('Rate limited - sleeping 60s...');
     await sleep(61_000);
   }
 }
@@ -253,12 +253,12 @@ async function apiGet(url, params = null, retries = 5) {
       const r = await fetch(fullUrl, { headers: getHeaders(), signal: AbortSignal.timeout(20_000) });
 
       if (r.status === 404) {
-        console.log(`  404 - skipping: ${url.split('?')[0]}`);
+        console.log(`404 - skipping: ${url.split('?')[0]}`);
         return null;
       }
 
       if (r.status === 401 || r.status === 403) {
-        console.log(`  Auth error ${r.status} - check cookies.txt`);
+        console.log(`Auth error ${r.status} - check cookies.txt`);
         return null;
       }
 
@@ -273,7 +273,7 @@ async function apiGet(url, params = null, retries = 5) {
 
     } catch (e) {
       if (_shutdown) return null;
-      console.log(`  Request error (attempt ${attempt + 1}/${retries}): ${e.message}`);
+      console.log(`Request error (attempt ${attempt + 1}/${retries}): ${e.message}`);
       await sleep(Math.min(2 ** attempt * 1000, 30_000));
     }
   }
@@ -412,11 +412,11 @@ async function fetchTweetWithReplies(tweetId) {
 
   const url = gqlUrl('TweetDetail');
   if (!url) {
-    console.log(`  TweetDetail query ID unknown - skipping ${tweetId}`);
+    console.log(`TweetDetail query ID unknown - skipping ${tweetId}`);
     return [];
   }
 
-  console.log(`  [${tweetId}] Fetching tweet + replies...`);
+  console.log(`[${tweetId}] Fetching tweet + replies...`);
   const allTweets = [];
   const visited = new Set();
   let cursor = null;
@@ -441,7 +441,7 @@ async function fetchTweetWithReplies(tweetId) {
 
     const { tweets, nextCursor } = parseGqlResponse(data, visited);
     allTweets.push(...tweets);
-    console.log(`    [${tweetId}] Page ${page + 1}: +${tweets.length} (total ${allTweets.length})`);
+    console.log(`[${tweetId}] Page ${page + 1}: +${tweets.length} (total ${allTweets.length})`);
 
     if (!tweets.length || !nextCursor) break;
     cursor = nextCursor;
@@ -471,21 +471,21 @@ async function resolveUserId(screenName) {
 
 async function fetchUserTimeline(screenName) {
   if (_shutdown) return [];
-  console.log(`  @${screenName} - resolving user ID...`);
+  console.log(`@${screenName} - resolving user ID...`);
 
   const userId = await resolveUserId(screenName);
   if (!userId) {
-    console.log(`  Could not resolve @${screenName} - skipping`);
+    console.log(`Could not resolve @${screenName} - skipping`);
     return [];
   }
 
   const url = gqlUrl('UserTweets');
   if (!url) {
-    console.log(`  UserTweets query ID unknown - skipping @${screenName}`);
+    console.log(`UserTweets query ID unknown - skipping @${screenName}`);
     return [];
   }
 
-  console.log(`  Fetching timeline @${screenName} (id=${userId})...`);
+  console.log(`Fetching timeline @${screenName} (id=${userId})...`);
   const allTweets = [];
   const visited = new Set();
   let cursor = null;
@@ -508,7 +508,7 @@ async function fetchUserTimeline(screenName) {
 
     const { tweets, nextCursor } = parseGqlResponse(data, visited);
     allTweets.push(...tweets);
-    console.log(`    [@${screenName}] Page ${page + 1}: +${tweets.length} (total ${allTweets.length})`);
+    console.log(`[@${screenName}] Page ${page + 1}: +${tweets.length} (total ${allTweets.length})`);
 
     if (!tweets.length || !nextCursor) break;
     cursor = nextCursor;
@@ -523,12 +523,12 @@ async function fetchSearch(query) {
 
   const url = gqlUrl('SearchTimeline');
   if (!url) {
-    console.log(`  SearchTimeline query ID unknown - skipping "${query}"`);
+    console.log(`SearchTimeline query ID unknown - skipping "${query}"`);
     return [];
   }
 
   const cutoff = cutoffDate();
-  console.log(`  Searching "${query}" (last ${SEARCH_MAX_AGE_HOURS}h, cutoff ${cutoff.toISOString().slice(11, 16)} UTC)...`);
+  console.log(`Searching "${query}" (last ${SEARCH_MAX_AGE_HOURS}h, cutoff ${cutoff.toISOString().slice(11, 16)} UTC)...`);
   const allTweets = [];
   const visited = new Set();
   let cursor = null;
@@ -554,10 +554,10 @@ async function fetchSearch(query) {
     const stale = tweets.length - fresh.length;
     allTweets.push(...fresh);
 
-    console.log(`    ["${query}"] Page ${page + 1}: +${fresh.length} fresh (${stale} too old, total ${allTweets.length})`);
+    console.log(`["${query}"] Page ${page + 1}: +${fresh.length} fresh (${stale} too old, total ${allTweets.length})`);
 
     if (stale > 0) {
-      console.log(`    ["${query}"] Hit age cutoff - stopping.`);
+      console.log(`["${query}"] Hit age cutoff - stopping.`);
       break;
     }
     if (!tweets.length || !nextCursor) break;
@@ -596,7 +596,7 @@ async function processUrl(line, idx, total) {
   else if (kind === 'user') tweets = await fetchUserTimeline(value);
   else if (kind === 'search') tweets = await fetchSearch(value);
   else {
-    console.log(`  Unrecognised URL type: "${line}"`);
+    console.log(`Unrecognised URL type: "${line}"`);
     return new Set();
   }
 
@@ -605,7 +605,7 @@ async function processUrl(line, idx, total) {
     for (const id of await extractFromLegacy(t)) found.add(id);
   }
 
-  console.log(`  [${value}] ${found.size} ID(s) found`);
+  console.log(`[${value}] ${found.size} ID(s) found`);
   return found;
 }
 
@@ -658,7 +658,7 @@ async function main() {
       const found = await processUrl(line, i + 1, total);
       for (const id of found) allFound.add(id);
     } catch (e) {
-      console.log(`  URL failed ("${line}"): ${e.message}`);
+      console.log(`URL failed ("${line}"): ${e.message}`);
     }
   });
 
@@ -673,7 +673,7 @@ async function main() {
   } else {
     appendToHarvested(allIds);
     console.log(`\nAppended to ${HARVESTED_FILE}:`);
-    for (const id of allIds) console.log(`   ${id}`);
+    console.log(allIds.join('\n'));
   }
 
   if (existsSync(READ_JS)) {
