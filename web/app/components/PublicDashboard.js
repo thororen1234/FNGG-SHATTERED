@@ -12,7 +12,18 @@ export default function PublicDashboard({ initialData }) {
   const [mounted, setMounted] = useState(false);
   const data = initialData;
 
-  const TOTAL_PIECES = 1296;
+  const MAX_FRAGMENTS_BY_DAY = {
+    1: 1296,
+    2: 1296,
+    3: 1296,
+    4: 576,
+    5: 1296,
+    6: 1296
+  };
+
+  const getTotalPieces = (day) => MAX_FRAGMENTS_BY_DAY[day] || 1296;
+  const TOTAL_PIECES = getTotalPieces(activeDay);
+
   const initialCount = (initialData?.days?.[String(activeDay)] || []).length;
   const [sliderValue, setSliderValue] = useState(initialCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : initialCount);
   const [mappings, setMappings] = useState(null);
@@ -31,11 +42,12 @@ export default function PublicDashboard({ initialData }) {
 
         const isDayLocked = initialData?.settings?.lockedDays?.includes(savedDay);
         const nextCount = (initialData?.days?.[String(savedDay)] || []).length;
+        const dayTotalPieces = getTotalPieces(savedDay);
 
         if (isDayLocked) {
-          setSliderValue(TOTAL_PIECES + 1);
+          setSliderValue(dayTotalPieces + 1);
         } else {
-          setSliderValue(nextCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : nextCount);
+          setSliderValue(nextCount === dayTotalPieces ? dayTotalPieces + 1 : nextCount);
         }
       }
     }, 0);
@@ -54,11 +66,12 @@ export default function PublicDashboard({ initialData }) {
 
     const isDayLocked = data?.settings?.lockedDays?.includes(d);
     const nextCount = (data?.days?.[String(d)] || []).length;
+    const dayTotalPieces = getTotalPieces(d);
 
     if (isDayLocked) {
-      setSliderValue(TOTAL_PIECES + 1);
+      setSliderValue(dayTotalPieces + 1);
     } else {
-      setSliderValue(nextCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : nextCount);
+      setSliderValue(nextCount === dayTotalPieces ? dayTotalPieces + 1 : nextCount);
     }
   };
 
