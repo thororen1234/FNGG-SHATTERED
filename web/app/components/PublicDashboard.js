@@ -10,6 +10,7 @@ export default function PublicDashboard({ initialData }) {
   const [activeDay, setActiveDay] = useState(1);
   const [isRawView, setIsRawView] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [mapError, setMapError] = useState(false);
   const data = initialData;
 
   const MAX_FRAGMENTS_BY_DAY = {
@@ -80,6 +81,7 @@ export default function PublicDashboard({ initialData }) {
 
   const handleDayChange = (d) => {
     setActiveDay(d);
+    setMapError(false);
     localStorage.setItem('fngg_active_day', d);
 
     const isDayLocked = data?.settings?.lockedDays?.includes(d);
@@ -349,16 +351,13 @@ export default function PublicDashboard({ initialData }) {
                   width: '100%',
                   height: '100%',
                   objectFit: 'contain',
-                  display: 'block',
+                  display: mapError ? 'none' : 'block',
                   borderRadius: 'var(--radius)'
                 }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
+                onError={() => setMapError(true)}
               />
               <div style={{
-                display: 'none',
+                display: mapError ? 'flex' : 'none',
                 position: 'absolute',
                 inset: 0,
                 alignItems: 'center',
