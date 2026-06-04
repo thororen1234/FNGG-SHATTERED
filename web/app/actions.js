@@ -135,7 +135,7 @@ export async function submitCode(formData) {
     return { success: false, error: 'Code already published for this day.' };
   }
 
-  if (data.submissions.find(s => s.code === code && s.day === day)) {
+  if (data.submissions.find(s => s.code === code && s.day === day && s.status === 'pending')) {
     return { success: false, error: 'Code already submitted and pending review.' };
   }
 
@@ -143,33 +143,7 @@ export async function submitCode(formData) {
   const isAdmin = !!cookieStore.get('admin_session');
 
   try {
-    const { cookieString, userAgent } = await getClearanceCookies();
-    const url = `https://fortnite.gg/img/fragments/${day}/small/${code}.webp`;
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Cookie': cookieString,
-        'User-Agent': userAgent
-      }
-    });
-
-    if (res.status === 404) {
-      return { success: false, error: 'Invalid code: Does not exist on fortnite.gg.' };
-    } else if (res.status === 403 || res.status === 503) {
-      console.warn('Cloudflare block during validation, invalidating cache.');
-      invalidateClearanceCache();
-      return { success: false, error: 'Temporary validation error. Please try again in a moment.' };
-    } else if (!res.ok) {
-      return { success: false, error: 'Failed to validate fragment.' };
-    }
-
     const willApprove = isAdmin || (data.settings.autoApproval && !data.settings.lockedDays.includes(day));
-    let fragmentBuffer = null;
-
-    if (willApprove) {
-      const arrayBuffer = await res.arrayBuffer();
-      fragmentBuffer = Buffer.from(arrayBuffer);
-    }
 
     const submission = {
       id: randomUUID(),
@@ -188,16 +162,21 @@ export async function submitCode(formData) {
       data.days[String(day)].push(code);
       data.days[String(day)].sort();
 
-      const mappings = await getFNGGMappings(day);
-      await applyApprovedCodeLogic(day, code, { cookieString, userAgent }, mappings);
+      (async () => {
+        try {
+          const cookieInfo = await getClearanceCookies();
+          const mappings = await getFNGGMappings(day);
+          await applyApprovedCodeLogic(day, code, cookieInfo, mappings);
+        } catch (e) { console.error(e); }
+      })();
     }
 
     data.submissions.unshift(submission);
     await saveData(data);
     return { success: true, autoApproved: submission.status === 'approved' };
   } catch (err) {
-    console.error('Validation error:', err);
-    return { success: false, error: 'Internal validation error.' };
+    console.error('Submission error:', err);
+    return { success: false, error: 'Internal error.' };
   }
 }
 
