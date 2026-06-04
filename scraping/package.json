@@ -10,7 +10,7 @@
     "read": "node read.js",
     "harvest": "node harvest.js",
     "fetch": "node fetch.js",
-    "fetchinput": "node fetchInput.js",
+    "fetchInput": "node fetchInput.js",
     "slice": "node slice.js"
   },
   "dependencies": {

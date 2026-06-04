@@ -35,8 +35,7 @@ async function tryFetchForId(id) {
         const dest = path.join(dayDir, `${id}.webp`);
 
         if (fs.existsSync(dest)) {
-            console.log(`[SKIP] ${id} already exists in day-${day}`);
-            return true;
+            return "skipped";
         }
 
         const url = `https://fortnite.gg/img/fragments/${day}/small/${id}.webp`;
@@ -46,14 +45,14 @@ async function tryFetchForId(id) {
             }
             await downloadImage(url, dest);
             console.log(`[OK] ${id} -> day-${day}`);
-            return true;
+            return "found";
         } catch { }
 
         await new Promise(r => setTimeout(r, 50));
     }
 
     console.log(`[MISS] ${id} not found on any day`);
-    return false;
+    return "missing";
 }
 
 async function main() {
@@ -62,10 +61,11 @@ async function main() {
         process.exit(1);
     }
 
-    const ids = fs.readFileSync(INPUT_FILE, 'utf8')
-        .split('\n')
-        .map(l => l.trim().toUpperCase())
-        .filter(l => /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(l));
+    const raw = fs.readFileSync(INPUT_FILE, 'utf8');
+    const ids = [...new Set(
+        (raw.match(/\b[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}\b/g) || [])
+            .map(id => id.toUpperCase())
+    )];
 
     if (ids.length === 0) {
         console.log('No valid IDs found in input.txt.');
@@ -76,13 +76,24 @@ async function main() {
 
     let found = 0;
     let missed = 0;
+    let skipped = 0;
 
     for (const id of ids) {
         const ok = await tryFetchForId(id);
-        ok ? found++ : missed++;
+        switch (ok) {
+            case "found":
+                found++;
+                break;
+            case "missing":
+                missed++;
+                break;
+            case "skipped":
+                skipped++;
+                break;
+        }
     }
 
-    console.log(`\nDone. Found: ${found}, Not found: ${missed}`);
+    console.log(`\nDone. Found: ${found}, Not found: ${missed}, Skipped: ${skipped}`);
 
     process.exit(0)
 }
