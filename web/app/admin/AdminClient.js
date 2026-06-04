@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { logout, reviewSubmission, bulkPublish, clearDayCodes, toggleSetting, toggleLockedDay, uploadMap, deleteCode, manualSync } from '../actions';
+import { logout, reviewSubmission, bulkPublish, clearDayCodes, toggleSetting, toggleLockedDay, uploadMap, deleteCode, manualSync, saveLateFound } from '../actions';
 import { useRouter } from 'next/navigation';
 
 export default function AdminClient({ initialData }) {
@@ -11,6 +11,12 @@ export default function AdminClient({ initialData }) {
   const [bulkCodes, setBulkCodes] = useState('');
   const [viewingDay, setViewingDay] = useState(null);
   const [rawViewDays, setRawViewDays] = useState({});
+  const [lateFoundEdits, setLateFoundEdits] = useState(
+    Object.fromEntries([1,2,3,4,5,6].map(d => [
+      d,
+      (initialData?.lateFound?.[String(d)] || []).join('\n')
+    ]))
+  );
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -101,6 +107,9 @@ export default function AdminClient({ initialData }) {
         </button>
         <button className={`button ${activeTab === 'map' ? 'button-primary' : ''}`} onClick={() => setActiveTab('map')}>
           Map Upload
+        </button>
+        <button className={`button ${activeTab === 'latefound' ? 'button-primary' : ''}`} onClick={() => setActiveTab('latefound')}>
+          Late Found
         </button>
         <button className={`button ${activeTab === 'settings' ? 'button-primary' : ''}`} onClick={() => setActiveTab('settings')}>
           Settings
@@ -249,6 +258,54 @@ export default function AdminClient({ initialData }) {
             </div>
             <button type="submit" className="button button-primary">Upload Map</button>
           </form>
+        </section>
+      )}
+
+      {activeTab === 'latefound' && (
+        <section className="panel">
+          <div style={{ marginBottom: '1rem' }}>
+            <h2 style={{ marginBottom: '0.25rem' }}>Late Found Codes</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+              Codes discovered after the puzzle was active. These show slightly brighter than missing slots on the map.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {[1, 2, 3, 4, 5, 6].map(d => (
+              <div key={d} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontWeight: 600 }}>Day {d}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {(lateFoundEdits[d] || '').split('\n').filter(l => /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i.test(l.trim())).length} codes
+                  </span>
+                </div>
+                <textarea
+                  className="input"
+                  style={{ width: '100%', height: '120px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '13px', lineHeight: '1.6', marginBottom: '0.75rem' }}
+                  placeholder="XXXX-XXXX-XXXX (one per line)"
+                  value={lateFoundEdits[d]}
+                  onChange={e => setLateFoundEdits(prev => ({ ...prev, [d]: e.target.value }))}
+                />
+                <button
+                  className="button button-primary"
+                  style={{ fontSize: '0.8rem', padding: '0.35rem 0.9rem' }}
+                  onClick={async () => {
+                    const fd = new FormData();
+                    fd.append('day', d);
+                    fd.append('codes', lateFoundEdits[d]);
+                    const res = await saveLateFound(fd);
+                    if (res.success) {
+                      alert(`Saved ${res.count} code(s) for Day ${d}`);
+                      router.refresh();
+                    } else {
+                      alert('Save failed');
+                    }
+                  }}
+                >
+                  Save Day {d}
+                </button>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 

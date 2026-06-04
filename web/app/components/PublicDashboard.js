@@ -182,6 +182,11 @@ export default function PublicDashboard({ initialData }) {
     return map;
   }, [mappings]);
 
+  const lateFoundSet = useMemo(() => {
+    const set = new Set(data?.lateFound?.[String(activeDay)] || []);
+    return set;
+  }, [data, activeDay]);
+
   const cells = useMemo(() => {
     const elements = [];
     if (!mappings) return elements;
@@ -189,15 +194,16 @@ export default function PublicDashboard({ initialData }) {
       for (let c = 0; c < gridSize.cols; c++) {
         const code = cellMap[`${c},${r}`];
         const isMissing = code && code.startsWith('missing');
+        const isLateFound = code && !isMissing && lateFoundSet.has(code) && !activeCodes.includes(code);
         const hasKnownPiece = code && activeCodes.includes(code);
-        const shouldRenderImage = hasKnownPiece || isMissing;
+        const shouldRenderImage = hasKnownPiece || isMissing || isLateFound;
 
         elements.push(
           <div
             key={`${c},${r}`}
             id={code ? `cell-${code}` : `cell-empty-${c}-${r}`}
-            className={`shattered-board-cell ${isMissing ? 'missing-cell' : ''} ${hasKnownPiece ? 'valid-fragment' : ''}`}
-            data-tooltip={(!isMissing && code) ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : `Code wasn't found\nRow ${r + 1}, Column ${c + 1}`}
+            className={`shattered-board-cell ${isMissing ? 'missing-cell' : ''} ${isLateFound ? 'late-found-cell' : ''} ${hasKnownPiece ? 'valid-fragment' : ''}`}
+            data-tooltip={(!isMissing && !isLateFound && code) ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : isMissing ? `Code wasn't found\nRow ${r + 1}, Column ${c + 1}` : `Fragment ${code}\nFound after puzzle\nRow ${r + 1}, Column ${c + 1}`}
             style={{
               backgroundImage: shouldRenderImage ? `url(/api/images/day-${activeDay}/${code}.webp)` : 'none'
             }}
@@ -206,20 +212,23 @@ export default function PublicDashboard({ initialData }) {
       }
     }
     return elements;
-  }, [mappings, activeDay, cellMap, activeCodes, gridSize]);
+  }, [mappings, activeDay, cellMap, activeCodes, lateFoundSet, gridSize]);
 
   const orderedCellIds = useMemo(() => {
     const knownIds = shuffledCodes.map(code => `cell-${code}`);
+    const lateFoundIds = [];
     const missingIds = [];
     if (mappings) {
       Object.keys(mappings).forEach(code => {
         if (code.startsWith('missing-')) {
           missingIds.push(`cell-${code}`);
+        } else if (lateFoundSet.has(code) && !activeCodes.includes(code)) {
+          lateFoundIds.push(`cell-${code}`);
         }
       });
     }
-    return [...knownIds, ...missingIds];
-  }, [shuffledCodes, mappings]);
+    return [...knownIds, ...lateFoundIds, ...missingIds];
+  }, [shuffledCodes, mappings, lateFoundSet, activeCodes]);
 
   useLayoutEffect(() => {
     const visibleSet = new Set(orderedCellIds.slice(0, sliderValue));

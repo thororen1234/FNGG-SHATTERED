@@ -11,6 +11,9 @@ const defaultData = {
   syncedCodes: {
     "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
   },
+  lateFound: {
+    "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
+  },
   submissions: [],
   settings: {
     autoApproval: false,
@@ -35,6 +38,9 @@ export async function getData() {
     const parsed = JSON.parse(content);
     if (!parsed.syncedCodes) {
       parsed.syncedCodes = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
+    }
+    if (!parsed.lateFound) {
+      parsed.lateFound = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
     }
     return parsed;
   } catch (err) {
