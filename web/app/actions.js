@@ -173,7 +173,11 @@ export async function submitCode(formData) {
 
     data.submissions.unshift(submission);
     await saveData(data);
-    return { success: true, autoApproved: submission.status === 'approved' };
+    return {
+      success: true,
+      autoApproved: submission.status === 'approved' && !isAdmin,
+      adminApproved: submission.status === 'approved' && isAdmin,
+    };
   } catch (err) {
     console.error('Submission error:', err);
     return { success: false, error: 'Internal error.' };
