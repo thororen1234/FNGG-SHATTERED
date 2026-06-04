@@ -10,8 +10,8 @@ if (!targetDay) {
 }
 
 const mapPath = path.join('../web/uploaded/maps', `day-${targetDay}.png`);
-const mappingsPath = path.join('../web/public/mappings', `day-${targetDay}.json`);
-const outDir = path.join('../web/public/images', `day-${targetDay}`);
+const mappingsPath = path.join('../web/uploaded/mappings', `day-${targetDay}.json`);
+const outDir = path.join('../web/uploaded/images', `day-${targetDay}`);
 
 if (!fs.existsSync(mapPath)) {
   console.error(`Map for day ${targetDay} not found at ${mapPath}`);
