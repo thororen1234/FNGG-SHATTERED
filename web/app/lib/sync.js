@@ -37,10 +37,11 @@ export async function syncAllDays() {
     }
 
     for (const day of Object.keys(fetchedDays)) {
-      const rawCodes = fetchedDays[day];
+      const blacklisted = new Set(data.blacklist?.[day] || []);
+      const rawCodes = fetchedDays[day].filter(c => !blacklisted.has(c));
       const newSyncedCodes = Array.from(new Set(rawCodes));
-      const currentCodes = data.days[day] || [];
-      const previouslySynced = data.syncedCodes[day] || [];
+      const currentCodes = (data.days[day] || []).filter(c => !blacklisted.has(c));
+      const previouslySynced = (data.syncedCodes[day] || []).filter(c => !blacklisted.has(c));
 
       const manuallyAdded = currentCodes.filter(c => !previouslySynced.includes(c));
       const mergedCodes = Array.from(new Set([...newSyncedCodes, ...manuallyAdded]));

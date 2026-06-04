@@ -14,6 +14,9 @@ const defaultData = {
   lateFound: {
     "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
   },
+  blacklist: {
+    "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
+  },
   submissions: [],
   settings: {
     autoApproval: false,
@@ -41,6 +44,9 @@ export async function getData() {
     }
     if (!parsed.lateFound) {
       parsed.lateFound = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
+    }
+    if (!parsed.blacklist) {
+      parsed.blacklist = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
     }
     return parsed;
   } catch (err) {
