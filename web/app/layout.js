@@ -5,7 +5,7 @@ const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' }
 
 export const metadata = {
   title: 'Shattered',
-  description: 'FNGG Shattered Teaser with a code list, automatically updated & interactive map, and more.',
+  description: 'FNGG Shattered was built around 6 teasers for Fortnite Chapter 7 Season 3, where players gathered fragments to complete each of the 6 puzzles together as a community.',
 };
 
 export default function RootLayout({ children }) {
@@ -17,7 +17,15 @@ export default function RootLayout({ children }) {
             <a href="/" className="brand">
               <span>SHATTERED</span>
             </a>
+            <span className="appbar-badge">Chapter 7 · Season 3</span>
           </header>
+          <div className="site-tagline">
+            <span className="eyebrow">Community Event</span>
+            <p className="tagline-text">
+              FNGG Shattered was built around 6 teasers for Fortnite Chapter 7 Season 3,
+              where players gathered fragments to complete each of the 6 puzzles together as a community.
+            </p>
+          </div>
           {children}
         </main>
       </body>

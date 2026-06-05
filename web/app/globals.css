@@ -75,8 +75,8 @@ h1, h2, h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 2rem;
-  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -97,6 +97,41 @@ h1, h2, h3 {
 .brand-icon {
   color: var(--primary);
   font-size: 1.5rem;
+}
+
+.appbar-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+}
+
+.site-tagline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.06) 0%, transparent 70%);
+  border-left: 3px solid var(--primary);
+  border-bottom: 1px solid var(--border);
+}
+
+.tagline-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 65ch;
+}
+
+.tagline-text strong {
+  color: var(--text);
+  font-weight: 700;
 }
 
 .mainnav {

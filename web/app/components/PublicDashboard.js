@@ -219,7 +219,7 @@ export default function PublicDashboard({ initialData }) {
     <div id="view-public">
       <section className="panel" style={{ marginBottom: '2rem' }}>
         <h1 className="hero-title">Fragment Codes</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Updated as soon as we get new codes for the day.</p>
+        <p style={{ color: 'var(--text-muted)' }}>The event is now over every code is listed below.</p>
 
         <div className="grid-2" style={{ marginTop: '1.5rem', gap: '1rem' }}>
           <div>
