@@ -7116,17 +7116,6 @@
       "reviewedAt": "2026-06-02T00:13:32.715Z"
     }
   ],
-  "settings": {
-    "autoApproval": false,
-    "lockedDays": [
-      2,
-      3,
-      1,
-      4,
-      5,
-      6
-    ]
-  },
   "updatedAt": "2026-06-05T11:21:35.562Z",
   "lateFound": {
     "1": [

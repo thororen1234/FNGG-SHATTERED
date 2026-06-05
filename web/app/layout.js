@@ -17,10 +17,6 @@ export default function RootLayout({ children }) {
             <a href="/" className="brand">
               <span>SHATTERED</span>
             </a>
-            <nav aria-label="Main navigation" className="mainnav">
-              <a href="/">Public</a>
-              <a href="/admin">Admin</a>
-            </nav>
           </header>
           {children}
         </main>

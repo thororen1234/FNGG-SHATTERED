@@ -11,11 +11,6 @@ const defaultData = {
   lateFound: {
     "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
   },
-  submissions: [],
-  settings: {
-    autoApproval: false,
-    lockedDays: []
-  },
   updatedAt: new Date().toISOString()
 };
 
@@ -39,12 +34,7 @@ export async function getData() {
     return parsed;
   } catch (err) {
     console.error('Failed to parse data.json, returning default data:', err);
-    return {
-      days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
-      submissions: [],
-      settings: { autoApproval: false, lockedDays: [] },
-      updatedAt: new Date().toISOString()
-    };
+    return { ...defaultData, updatedAt: new Date().toISOString() };
   }
 }
 

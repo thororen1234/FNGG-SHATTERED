@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo, useLayoutEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { submitCode } from '../actions';
 
 const MAX_FRAGMENTS_BY_DAY = {
   1: 1296,
@@ -16,8 +14,6 @@ const MAX_FRAGMENTS_BY_DAY = {
 const getTotalPieces = (day) => MAX_FRAGMENTS_BY_DAY[day] || 1296;
 
 export default function PublicDashboard({ initialData }) {
-  const router = useRouter();
-
   const [activeDay, setActiveDay] = useState(1);
   const [isRawView, setIsRawView] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -27,7 +23,7 @@ export default function PublicDashboard({ initialData }) {
   const TOTAL_PIECES = getTotalPieces(activeDay);
 
   const initialCount = (initialData?.days?.[String(activeDay)] || []).length;
-  const [sliderValue, setSliderValue] = useState(initialCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : initialCount);
+  const [sliderValue, setSliderValue] = useState([1, 2].includes(activeDay) ? TOTAL_PIECES + 1 : (initialCount === TOTAL_PIECES ? TOTAL_PIECES + 1 : initialCount));
   const [mappings, setMappings] = useState(null);
 
   const gridSize = useMemo(() => {
@@ -60,11 +56,9 @@ export default function PublicDashboard({ initialData }) {
           setActiveDay(savedDay);
         }
 
-        const isDayLocked = initialData?.settings?.lockedDays?.includes(savedDay);
         const nextCount = (initialData?.days?.[String(savedDay)] || []).length;
         const dayTotalPieces = getTotalPieces(savedDay);
-
-        if (isDayLocked) {
+        if ([1, 2].includes(savedDay)) {
           setSliderValue(dayTotalPieces + 1);
         } else {
           setSliderValue(nextCount === dayTotalPieces ? dayTotalPieces + 1 : nextCount);
@@ -85,11 +79,9 @@ export default function PublicDashboard({ initialData }) {
     setMapError(false);
     localStorage.setItem('fngg_active_day', d);
 
-    const isDayLocked = data?.settings?.lockedDays?.includes(d);
     const nextCount = (data?.days?.[String(d)] || []).length;
     const dayTotalPieces = getTotalPieces(d);
-
-    if (isDayLocked) {
+    if ([1, 2].includes(d)) {
       setSliderValue(dayTotalPieces + 1);
     } else {
       setSliderValue(nextCount === dayTotalPieces ? dayTotalPieces + 1 : nextCount);
@@ -98,7 +90,6 @@ export default function PublicDashboard({ initialData }) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
-  const [submitRaw, setSubmitRaw] = useState('');
 
   const days = [1, 2, 3, 4, 5, 6];
   const activeCodes = [...(data.days[String(activeDay)] || [])].sort();
@@ -111,8 +102,6 @@ export default function PublicDashboard({ initialData }) {
     return hash;
   };
   const shuffledCodes = [...activeCodes].sort((a, b) => hashStr(a) - hashStr(b));
-
-  const isLocked = data?.settings?.lockedDays?.includes(activeDay);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -137,24 +126,6 @@ export default function PublicDashboard({ initialData }) {
       setSearchResult({ found: true, text: `✓ Found in Day ${foundDay}: ${found}` });
     } else {
       setSearchResult({ found: false, text: '✗ Code not found in any published day.' });
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('code', submitRaw);
-    formData.append('day', activeDay);
-
-    const res = await submitCode(formData);
-    if (res.success) {
-      alert(res.autoApproved ? 'Code auto-approved and published!' : 'Submitted for review. Thanks!');
-      setSubmitRaw('');
-      if (res.autoApproved) {
-        router.refresh();
-      }
-    } else {
-      alert(res.error);
     }
   };
 
@@ -372,15 +343,15 @@ export default function PublicDashboard({ initialData }) {
                 border: '1px dashed var(--border)',
                 borderRadius: 'var(--radius)'
               }}>
-                No map uploaded for day {mounted ? activeDay : 1} yet.
+                No map available for day {mounted ? activeDay : 1}.
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="grid-2" style={{ marginBottom: '2rem' }}>
-        <form className="panel" onSubmit={handleSearch}>
+      <section className="panel" style={{ marginBottom: '2rem' }}>
+        <form onSubmit={handleSearch}>
           <div style={{ marginBottom: '1rem' }}>
             <span className="eyebrow">Search</span>
             <h2>Check a code</h2>
@@ -407,27 +378,7 @@ export default function PublicDashboard({ initialData }) {
             </div>
           )}
         </form>
-
-        <form className="panel" onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <span className="eyebrow">Request</span>
-            <h2>Submit for day {mounted ? activeDay : 1}</h2>
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              className="input"
-              placeholder={isLocked ? "Submissions are locked" : "XXXX-XXXX-XXXX"}
-              maxLength="14"
-              value={submitRaw}
-              onChange={e => setSubmitRaw(e.target.value.toUpperCase())}
-              disabled={isLocked}
-            />
-            <button type="submit" className="button button-primary" disabled={isLocked}>
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
+      </section>
 
       <section className="panel">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
