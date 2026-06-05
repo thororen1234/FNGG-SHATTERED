@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { logout, reviewSubmission, bulkPublish, clearDayCodes, toggleSetting, toggleLockedDay, uploadMap, deleteCode, manualSync, saveLateFound, saveBlacklist } from '../actions';
+import { logout, reviewSubmission, bulkPublish, clearDayCodes, toggleSetting, toggleLockedDay, uploadMap, deleteCode, saveLateFound } from '../actions';
 import { useRouter } from 'next/navigation';
 
 export default function AdminClient({ initialData }) {
@@ -15,12 +15,6 @@ export default function AdminClient({ initialData }) {
     Object.fromEntries([1, 2, 3, 4, 5, 6].map(d => [
       d,
       (initialData?.lateFound?.[String(d)] || []).join('\n')
-    ]))
-  );
-  const [blacklistEdits, setBlacklistEdits] = useState(
-    Object.fromEntries([1, 2, 3, 4, 5, 6].map(d => [
-      d,
-      (initialData?.blacklist?.[String(d)] || []).join('\n')
     ]))
   );
   const router = useRouter();
@@ -79,19 +73,6 @@ export default function AdminClient({ initialData }) {
     }
   };
 
-  const handleManualSync = async () => {
-    try {
-      const res = await manualSync();
-      if (res.success) {
-        alert('Manual sync completed!');
-        router.refresh();
-      } else {
-        alert('Error: ' + res.error);
-      }
-    } catch (err) {
-      alert('Error triggering sync: ' + err.message);
-    }
-  };
 
   const pendingSubs = data.submissions.filter(s => s.status === 'pending');
 
@@ -116,9 +97,6 @@ export default function AdminClient({ initialData }) {
         </button>
         <button className={`button ${activeTab === 'latefound' ? 'button-primary' : ''}`} onClick={() => setActiveTab('latefound')}>
           Late Found
-        </button>
-        <button className={`button ${activeTab === 'blacklist' ? 'button-primary' : ''}`} onClick={() => setActiveTab('blacklist')}>
-          Blacklist
         </button>
         <button className={`button ${activeTab === 'settings' ? 'button-primary' : ''}`} onClick={() => setActiveTab('settings')}>
           Settings
@@ -152,18 +130,6 @@ export default function AdminClient({ initialData }) {
       {activeTab === 'publish' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <section className="grid-2">
-            <div className="panel">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <h2 style={{ marginBottom: '0.5rem' }}>Manual Synchronization</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>Force a manual sync of codes from the external source.</p>
-                </div>
-                <button className="button button-primary" onClick={handleManualSync}>
-                  Trigger Manual Sync
-                </button>
-              </div>
-            </div>
-
             <div className="panel">
               <h2 style={{ marginBottom: '1rem' }}>Bulk Upload Codes</h2>
               <div style={{ marginBottom: '1rem' }}>
@@ -318,55 +284,6 @@ export default function AdminClient({ initialData }) {
         </section>
       )}
 
-      {activeTab === 'blacklist' && (
-        <section className="panel">
-          <div style={{ marginBottom: '1rem' }}>
-            <h2 style={{ marginBottom: '0.25rem' }}>Blacklisted Codes</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
-              Invalid codes that will never be shown publicly or synced in. Saving immediately removes them from published days.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {[1, 2, 3, 4, 5, 6].map(d => (
-              <div key={d} style={{ background: 'var(--bg)', border: '1px solid var(--danger)', borderRadius: 'var(--radius)', padding: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <span style={{ fontWeight: 600 }}>Day {d}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {(blacklistEdits[d] || '').split('\n').filter(l => /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i.test(l.trim())).length} blocked
-                  </span>
-                </div>
-                <textarea
-                  className="input"
-                  style={{ width: '100%', height: '120px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '13px', lineHeight: '1.6', marginBottom: '0.75rem', borderColor: 'var(--danger)' }}
-                  placeholder="XXXX-XXXX-XXXX (one per line)"
-                  value={blacklistEdits[d]}
-                  onChange={e => setBlacklistEdits(prev => ({ ...prev, [d]: e.target.value }))}
-                />
-                <button
-                  className="button button-danger"
-                  style={{ fontSize: '0.8rem', padding: '0.35rem 0.9rem' }}
-                  onClick={async () => {
-                    if (!confirm(`Block ${blacklistEdits[d].split('\n').filter(l => /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i.test(l.trim())).length} code(s) for Day ${d}? They will be removed from published codes immediately.`)) return;
-                    const fd = new FormData();
-                    fd.append('day', d);
-                    fd.append('codes', blacklistEdits[d]);
-                    const res = await saveBlacklist(fd);
-                    if (res.success) {
-                      alert(`Blacklisted ${res.count} code(s) for Day ${d}`);
-                      router.refresh();
-                    } else {
-                      alert('Save failed');
-                    }
-                  }}
-                >
-                  Save Blacklist Day {d}
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {activeTab === 'settings' && (
         <section className="panel">
           <h2 style={{ marginBottom: '1rem' }}>System Settings</h2>
@@ -386,25 +303,6 @@ export default function AdminClient({ initialData }) {
             </button>
           </div>
 
-          <div style={{ marginBottom: '2rem' }}>
-            <h3>Automatic Syncing</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>
-              Periodically pull codes from the external source every 5 minutes. Disabling this also blocks manual sync triggers.
-            </p>
-            <button
-              className="button"
-              style={{
-                borderColor: data.settings.syncEnabled !== false ? 'var(--success)' : 'var(--danger)',
-                color: data.settings.syncEnabled !== false ? 'var(--success)' : 'var(--danger)',
-              }}
-              onClick={async () => {
-                await toggleSetting('syncEnabled');
-                router.refresh();
-              }}
-            >
-              {data.settings.syncEnabled !== false ? 'Enabled' : 'Disabled'}
-            </button>
-          </div>
 
           <div>
             <h3>Locked Days</h3>

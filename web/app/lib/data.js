@@ -8,19 +8,12 @@ const defaultData = {
   days: {
     "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
   },
-  syncedCodes: {
-    "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
-  },
   lateFound: {
-    "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
-  },
-  blacklist: {
     "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
   },
   submissions: [],
   settings: {
     autoApproval: false,
-    syncEnabled: true,
     lockedDays: []
   },
   updatedAt: new Date().toISOString()
@@ -40,23 +33,16 @@ export async function getData() {
   const content = await fs.readFile(DATA_FILE, 'utf-8');
   try {
     const parsed = JSON.parse(content);
-    if (!parsed.syncedCodes) {
-      parsed.syncedCodes = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
-    }
     if (!parsed.lateFound) {
       parsed.lateFound = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
-    }
-    if (!parsed.blacklist) {
-      parsed.blacklist = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
     }
     return parsed;
   } catch (err) {
     console.error('Failed to parse data.json, returning default data:', err);
     return {
       days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
-      syncedCodes: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
       submissions: [],
-      settings: { autoApproval: false, syncEnabled: true, lockedDays: [] },
+      settings: { autoApproval: false, lockedDays: [] },
       updatedAt: new Date().toISOString()
     };
   }

@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 import { encrypt, verifyPassword } from './lib/auth';
 import { getData, saveData } from './lib/data';
 import { randomUUID } from 'crypto';
-import { syncAllDays } from './lib/sync';
 import { getClearanceCookies, invalidateClearanceCache, getFNGGMappings } from './lib/cf';
 import sharp from 'sharp';
 import fs from 'fs/promises';
@@ -274,14 +273,6 @@ export async function deleteCode(day, code) {
   return { success: true };
 }
 
-export async function manualSync() {
-  const data = await getData();
-  if (data.settings?.syncEnabled === false) {
-    return { success: false, error: 'Syncing is disabled. Enable it in Settings first.' };
-  }
-  await syncAllDays();
-  return { success: true };
-}
 
 export async function toggleSetting(key) {
   const data = await getData();
@@ -347,28 +338,3 @@ export async function saveLateFound(formData) {
   return { success: true, count: codes.length };
 }
 
-export async function saveBlacklist(formData) {
-  const day = formData.get('day');
-  const raw = formData.get('codes') || '';
-
-  const codes = raw.split('\n')
-    .map(c => c.trim().toUpperCase())
-    .filter(c => /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(c));
-
-  const data = await getData();
-  if (!data.blacklist) {
-    data.blacklist = { '1': [], '2': [], '3': [], '4': [], '5': [], '6': [] };
-  }
-  data.blacklist[String(day)] = codes;
-
-  const d = String(day);
-  if (data.days[d]) {
-    data.days[d] = data.days[d].filter(c => !codes.includes(c));
-  }
-  if (data.syncedCodes?.[d]) {
-    data.syncedCodes[d] = data.syncedCodes[d].filter(c => !codes.includes(c));
-  }
-
-  await saveData(data);
-  return { success: true, count: codes.length };
-}

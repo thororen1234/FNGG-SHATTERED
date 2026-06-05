@@ -100,8 +100,7 @@ export default function PublicDashboard({ initialData }) {
   const [submitRaw, setSubmitRaw] = useState('');
 
   const days = [1, 2, 3, 4, 5, 6];
-  const blacklistedSet = new Set(data?.blacklist?.[String(activeDay)] || []);
-  const activeCodes = [...(data.days[String(activeDay)] || [])].filter(c => !blacklistedSet.has(c)).sort();
+  const activeCodes = [...(data.days[String(activeDay)] || [])].sort();
 
   const hashStr = (str) => {
     let hash = 0;
