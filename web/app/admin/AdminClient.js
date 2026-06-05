@@ -386,6 +386,26 @@ export default function AdminClient({ initialData }) {
             </button>
           </div>
 
+          <div style={{ marginBottom: '2rem' }}>
+            <h3>Automatic Syncing</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>
+              Periodically pull codes from the external source every 5 minutes. Disabling this also blocks manual sync triggers.
+            </p>
+            <button
+              className="button"
+              style={{
+                borderColor: data.settings.syncEnabled !== false ? 'var(--success)' : 'var(--danger)',
+                color: data.settings.syncEnabled !== false ? 'var(--success)' : 'var(--danger)',
+              }}
+              onClick={async () => {
+                await toggleSetting('syncEnabled');
+                router.refresh();
+              }}
+            >
+              {data.settings.syncEnabled !== false ? 'Enabled' : 'Disabled'}
+            </button>
+          </div>
+
           <div>
             <h3>Locked Days</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>Days marked as locked do not accept new submissions.</p>

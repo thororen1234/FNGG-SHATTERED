@@ -20,6 +20,7 @@ const defaultData = {
   submissions: [],
   settings: {
     autoApproval: false,
+    syncEnabled: true,
     lockedDays: []
   },
   updatedAt: new Date().toISOString()
@@ -55,7 +56,7 @@ export async function getData() {
       days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
       syncedCodes: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
       submissions: [],
-      settings: { autoApproval: false, lockedDays: [] },
+      settings: { autoApproval: false, syncEnabled: true, lockedDays: [] },
       updatedAt: new Date().toISOString()
     };
   }

@@ -275,6 +275,10 @@ export async function deleteCode(day, code) {
 }
 
 export async function manualSync() {
+  const data = await getData();
+  if (data.settings?.syncEnabled === false) {
+    return { success: false, error: 'Syncing is disabled. Enable it in Settings first.' };
+  }
   await syncAllDays();
   return { success: true };
 }

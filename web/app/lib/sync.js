@@ -4,6 +4,12 @@ const SYNC_INTERVAL = 5 * 60 * 1000;
 
 export async function syncAllDays() {
   const data = await getData();
+
+  if (data.settings?.syncEnabled === false) {
+    console.log('Sync is disabled via admin settings, skipping.');
+    return;
+  }
+
   let updated = false;
   const newlyAdded = {};
 
