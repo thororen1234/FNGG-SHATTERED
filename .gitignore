@@ -23,4 +23,3 @@ yarn-error.log*
 next-env.d.ts
 *-deployment.yaml
 *.traineddata
-FNGGPuzzleDL

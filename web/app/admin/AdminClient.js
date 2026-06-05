@@ -241,7 +241,7 @@ export default function AdminClient({ initialData }) {
           <div style={{ marginBottom: '1rem' }}>
             <h2 style={{ marginBottom: '0.25rem' }}>Late Found Codes</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
-              Codes discovered after the puzzle was active. These show slightly brighter than missing slots on the map.
+              Codes discovered after the puzzle was active. These show slightly dimmer than found codes on the map.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

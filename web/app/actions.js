@@ -4,8 +4,6 @@ import { cookies } from 'next/headers';
 import { encrypt, verifyPassword } from './lib/auth';
 import { getData, saveData } from './lib/data';
 import { randomUUID } from 'crypto';
-import { getClearanceCookies, invalidateClearanceCache, getFNGGMappings } from './lib/cf';
-import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -31,87 +29,6 @@ export async function logout() {
   cookieStore.delete('admin_session');
 }
 
-export async function applyApprovedCodeLogic(day, code, cookieInfo) {
-  try {
-    const imagesDir = path.join(process.cwd(), 'uploaded', 'images', `day-${day}`);
-    const fragmentPath = path.join(imagesDir, `${code}.webp`);
-    const mappingsDir = path.join(process.cwd(), 'uploaded', 'mappings');
-    const mappingsPath = path.join(mappingsDir, `day-${day}.json`);
-    const mapsDir = path.join(process.cwd(), 'uploaded', 'maps');
-    const mapPath = path.join(mapsDir, `day-${day}.png`);
-
-    let shouldSkip = false;
-    let currentMap = {};
-
-    try {
-      currentMap = JSON.parse(await fs.readFile(mappingsPath, 'utf8'));
-    } catch (e) { }
-
-    try {
-      await fs.access(fragmentPath);
-      if (currentMap[code]) {
-        shouldSkip = true;
-      }
-    } catch (e) { }
-
-    if (shouldSkip) {
-      return;
-    }
-
-    const url = `https://fortnite.gg/img/fragments/${day}/small/${code}.webp`;
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: { 'Cookie': cookieInfo.cookieString, 'User-Agent': cookieInfo.userAgent }
-    });
-
-    let fragmentBuffer;
-    if (res.ok) {
-      await fs.mkdir(imagesDir, { recursive: true });
-      const arrayBuffer = await res.arrayBuffer();
-      fragmentBuffer = Buffer.from(arrayBuffer);
-      await fs.writeFile(fragmentPath, fragmentBuffer);
-    } else {
-      console.log(`Failed to download fragment for code ${code}`);
-      return;
-    }
-
-    let x, y;
-
-    const { postFNGGCode } = await import('./lib/cf.js');
-    const postResponse = await postFNGGCode(code);
-    if (!postResponse.error && postResponse.x !== undefined && postResponse.y !== undefined) {
-      x = postResponse.x;
-      y = postResponse.y;
-    } else {
-      console.error(`Failed to map code ${code} via POST:`, postResponse);
-      return;
-    }
-
-    currentMap[code] = [x, y];
-    await fs.mkdir(mappingsDir, { recursive: true });
-    await fs.writeFile(mappingsPath, JSON.stringify(currentMap, null, 2), 'utf8');
-
-    await fs.mkdir(mapsDir, { recursive: true });
-    try {
-      const mapBuffer = await fs.readFile(mapPath);
-      const composited = await sharp(mapBuffer)
-        .composite([{ input: fragmentBuffer, left: x * 40, top: y * 40 }])
-        .png()
-        .toBuffer();
-      await fs.writeFile(mapPath, composited);
-    } catch (e) {
-      const blankMap = await sharp({
-        create: { width: 48 * 40, height: 27 * 40, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } }
-      })
-        .composite([{ input: fragmentBuffer, left: x * 40, top: y * 40 }])
-        .png()
-        .toBuffer();
-      await fs.writeFile(mapPath, blankMap);
-    }
-  } catch (e) {
-    console.error('Error applying approved code logic for', code, e);
-  }
-}
 
 export async function submitCode(formData) {
   const rawCode = formData.get('code');
@@ -161,13 +78,6 @@ export async function submitCode(formData) {
       data.days[String(day)].push(code);
       data.days[String(day)].sort();
 
-      (async () => {
-        try {
-          const cookieInfo = await getClearanceCookies();
-          const mappings = await getFNGGMappings(day);
-          await applyApprovedCodeLogic(day, code, cookieInfo, mappings);
-        } catch (e) { console.error(e); }
-      })();
     }
 
     data.submissions.unshift(submission);
@@ -199,13 +109,6 @@ export async function reviewSubmission(id, action) {
       data.days[d].push(sub.code);
       data.days[d].sort();
 
-      (async () => {
-        try {
-          const cookieInfo = await getClearanceCookies();
-          const mappings = await getFNGGMappings();
-          await applyApprovedCodeLogic(sub.day, sub.code, cookieInfo, mappings);
-        } catch (e) { console.error(e); }
-      })();
     }
   }
 
@@ -240,15 +143,6 @@ export async function bulkPublish(formData) {
     data.days[day].sort();
     await saveData(data);
 
-    (async () => {
-      try {
-        const cookieInfo = await getClearanceCookies();
-        const mappings = await getFNGGMappings();
-        for (const c of addedCodes) {
-          await applyApprovedCodeLogic(day, c, cookieInfo, mappings);
-        }
-      } catch (e) { console.error(e); }
-    })();
   } else {
     await saveData(data);
   }

@@ -193,17 +193,16 @@ export default function PublicDashboard({ initialData }) {
     for (let r = 0; r < gridSize.rows; r++) {
       for (let c = 0; c < gridSize.cols; c++) {
         const code = cellMap[`${c},${r}`];
-        const isMissing = code && code.startsWith('missing');
-        const isLateFound = code && !isMissing && lateFoundSet.has(code) && !activeCodes.includes(code);
+        const isLateFound = code && lateFoundSet.has(code) && !activeCodes.includes(code);
         const hasKnownPiece = code && activeCodes.includes(code);
-        const shouldRenderImage = hasKnownPiece || isMissing || isLateFound;
+        const shouldRenderImage = hasKnownPiece || isLateFound;
 
         elements.push(
           <div
             key={`${c},${r}`}
             id={code ? `cell-${code}` : `cell-empty-${c}-${r}`}
-            className={`shattered-board-cell ${isMissing ? 'missing-cell' : ''} ${isLateFound ? 'late-found-cell' : ''} ${hasKnownPiece ? 'valid-fragment' : ''}`}
-            data-tooltip={(!isMissing && !isLateFound && code) ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : isMissing ? `Code wasn't found\nRow ${r + 1}, Column ${c + 1}` : `Fragment ${code}\nFound after puzzle\nRow ${r + 1}, Column ${c + 1}`}
+            className={`shattered-board-cell ${isLateFound ? 'late-found-cell' : ''} ${hasKnownPiece ? 'valid-fragment' : ''}`}
+            data-tooltip={isLateFound ? `Fragment ${code}\nFound after puzzle\nRow ${r + 1}, Column ${c + 1}` : code ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : undefined}
             style={{
               backgroundImage: shouldRenderImage ? `url(/api/images/day-${activeDay}/${code}.webp)` : 'none'
             }}
@@ -217,17 +216,14 @@ export default function PublicDashboard({ initialData }) {
   const orderedCellIds = useMemo(() => {
     const knownIds = shuffledCodes.map(code => `cell-${code}`);
     const lateFoundIds = [];
-    const missingIds = [];
     if (mappings) {
       Object.keys(mappings).forEach(code => {
-        if (code.startsWith('missing-')) {
-          missingIds.push(`cell-${code}`);
-        } else if (lateFoundSet.has(code) && !activeCodes.includes(code)) {
+        if (lateFoundSet.has(code) && !activeCodes.includes(code)) {
           lateFoundIds.push(`cell-${code}`);
         }
       });
     }
-    return [...knownIds, ...lateFoundIds, ...missingIds];
+    return [...knownIds, ...lateFoundIds];
   }, [shuffledCodes, mappings, lateFoundSet, activeCodes]);
 
   useLayoutEffect(() => {

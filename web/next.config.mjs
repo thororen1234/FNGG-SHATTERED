@@ -5,8 +5,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '100mb',
     },
-  },
-  serverExternalPackages: ['puppeteer-core', 'puppeteer-extra', 'puppeteer-extra-plugin-stealth', 'sharp'],
+  }
 };
 
 export default nextConfig;
