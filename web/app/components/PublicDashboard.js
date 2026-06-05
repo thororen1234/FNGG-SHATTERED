@@ -4,6 +4,17 @@ import { useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitCode } from '../actions';
 
+const MAX_FRAGMENTS_BY_DAY = {
+  1: 1296,
+  2: 1296,
+  3: 1296,
+  4: 576,
+  5: 1296,
+  6: 1296
+};
+
+const getTotalPieces = (day) => MAX_FRAGMENTS_BY_DAY[day] || 1296;
+
 export default function PublicDashboard({ initialData }) {
   const router = useRouter();
 
@@ -13,16 +24,6 @@ export default function PublicDashboard({ initialData }) {
   const [mapError, setMapError] = useState(false);
   const data = initialData;
 
-  const MAX_FRAGMENTS_BY_DAY = {
-    1: 1296,
-    2: 1296,
-    3: 1296,
-    4: 576,
-    5: 1296,
-    6: 1296
-  };
-
-  const getTotalPieces = (day) => MAX_FRAGMENTS_BY_DAY[day] || 1296;
   const TOTAL_PIECES = getTotalPieces(activeDay);
 
   const initialCount = (initialData?.days?.[String(activeDay)] || []).length;
@@ -159,7 +160,7 @@ export default function PublicDashboard({ initialData }) {
 
   const copyAll = async () => {
     try {
-      await navigator.clipboard.writeText(activeCodes.join('\n'));
+      await navigator.clipboard.writeText([...activeCodes, ...Array.from(lateFoundSet)].join('\n'));
       alert('All codes copied!');
     } catch (err) {
       alert('Failed to copy');
@@ -182,10 +183,10 @@ export default function PublicDashboard({ initialData }) {
     return map;
   }, [mappings]);
 
-  const lateFoundSet = useMemo(() => {
-    const set = new Set(data?.lateFound?.[String(activeDay)] || []);
-    return set;
-  }, [data, activeDay]);
+  const lateFoundArray = useMemo(
+    () => data?.lateFound?.[String(activeDay)] || [],
+    [data, activeDay]
+  );
 
   const cells = useMemo(() => {
     const elements = [];
@@ -193,7 +194,7 @@ export default function PublicDashboard({ initialData }) {
     for (let r = 0; r < gridSize.rows; r++) {
       for (let c = 0; c < gridSize.cols; c++) {
         const code = cellMap[`${c},${r}`];
-        const isLateFound = code && lateFoundSet.has(code) && !activeCodes.includes(code);
+        const isLateFound = code && lateFoundArray.includes(code) && !activeCodes.includes(code);
         const hasKnownPiece = code && activeCodes.includes(code);
         const shouldRenderImage = hasKnownPiece || isLateFound;
 
@@ -211,20 +212,20 @@ export default function PublicDashboard({ initialData }) {
       }
     }
     return elements;
-  }, [mappings, activeDay, cellMap, activeCodes, lateFoundSet, gridSize]);
+  }, [mappings, activeDay, cellMap, activeCodes, lateFoundArray, gridSize]);
 
   const orderedCellIds = useMemo(() => {
     const knownIds = shuffledCodes.map(code => `cell-${code}`);
     const lateFoundIds = [];
     if (mappings) {
       Object.keys(mappings).forEach(code => {
-        if (lateFoundSet.has(code) && !activeCodes.includes(code)) {
+        if (lateFoundArray.includes(code) && !activeCodes.includes(code)) {
           lateFoundIds.push(`cell-${code}`);
         }
       });
     }
     return [...knownIds, ...lateFoundIds];
-  }, [shuffledCodes, mappings, lateFoundSet, activeCodes]);
+  }, [shuffledCodes, mappings, lateFoundArray, activeCodes]);
 
   useLayoutEffect(() => {
     const visibleSet = new Set(orderedCellIds.slice(0, sliderValue));
@@ -252,7 +253,7 @@ export default function PublicDashboard({ initialData }) {
         <div className="grid-2" style={{ marginTop: '1.5rem', gap: '1rem' }}>
           <div>
             <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>
-              {mounted ? activeCodes.length : (data.days['1'] || []).length}
+              {mounted ? activeCodes.length + lateFoundSet.size : (data.days['1'] || []).length + (data.lateFound?.['1'] || []).length}
             </div>
             <div className="eyebrow">day {mounted ? activeDay : 1} lines</div>
           </div>
@@ -261,7 +262,7 @@ export default function PublicDashboard({ initialData }) {
 
       <nav style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
         {days.map(d => {
-          const count = (data.days[String(d)] || []).length;
+          const count = (data.days[String(d)] || []).length + (data.lateFound?.[String(d)] || []).length;
           const isActive = mounted ? (activeDay === d) : (d === 1);
           return (
             <button
@@ -432,13 +433,13 @@ export default function PublicDashboard({ initialData }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
             <span className="eyebrow">Day {mounted ? activeDay : 1}</span>
-            <h2>Published lines</h2>
+            <h2>Published Codes</h2>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button className={`button ${isRawView ? 'button-primary' : ''}`} onClick={() => setIsRawView(!isRawView)}>Raw</button>
             <a href={`/api/raw?day=${mounted ? activeDay : 1}`} target="_blank" rel="noreferrer" className="button">API raw</a>
             <a href="/api/raw?day=all" target="_blank" rel="noreferrer" className="button">API raw (All)</a>
-            <button className="button button-primary" onClick={copyAll} disabled={activeCodes.length === 0}>Copy All</button>
+            <button className="button button-primary" onClick={copyAll} disabled={activeCodes.length === 0 && lateFoundSet.size === 0}>Copy All</button>
           </div>
         </div>
 
@@ -449,7 +450,7 @@ export default function PublicDashboard({ initialData }) {
             readOnly
             className="input"
             style={{ width: '100%', height: '300px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '14px', lineHeight: '1.5' }}
-            value={activeCodes.join('\n')}
+            value={[...activeCodes, ...Array.from(lateFoundSet)].join('\n')}
             onFocus={(e) => e.target.select()}
           />
         ) : (
@@ -466,6 +467,31 @@ export default function PublicDashboard({ initialData }) {
                 fontFamily: 'var(--font-mono)'
               }}>
                 <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{code}</span>
+                <button
+                  className="button"
+                  style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}
+                  onClick={() => copyCode(code)}
+                >
+                  copy
+                </button>
+              </div>
+            ))}
+            {Array.from(lateFoundSet).map(code => (
+              <div key={code} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0.75rem 1rem',
+                backgroundColor: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                fontFamily: 'var(--font-mono)',
+                opacity: 0.65
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ color: 'var(--text)', fontWeight: 700 }}>{code}</span>
+                  <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-sans, sans-serif)', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '4px', padding: '0.1rem 0.35rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Late Find</span>
+                </div>
                 <button
                   className="button"
                   style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}
