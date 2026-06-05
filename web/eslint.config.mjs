@@ -9,6 +9,11 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      "react-compiler/react-compiler": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;

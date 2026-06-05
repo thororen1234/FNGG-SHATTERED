@@ -160,7 +160,7 @@ export default function PublicDashboard({ initialData }) {
 
   const copyAll = async () => {
     try {
-      await navigator.clipboard.writeText([...activeCodes, ...Array.from(lateFoundSet)].join('\n'));
+      await navigator.clipboard.writeText([...activeCodes, ...lateFoundArray].join('\n'));
       alert('All codes copied!');
     } catch (err) {
       alert('Failed to copy');
@@ -253,7 +253,7 @@ export default function PublicDashboard({ initialData }) {
         <div className="grid-2" style={{ marginTop: '1.5rem', gap: '1rem' }}>
           <div>
             <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>
-              {mounted ? activeCodes.length + lateFoundSet.size : (data.days['1'] || []).length + (data.lateFound?.['1'] || []).length}
+              {mounted ? activeCodes.length + lateFoundArray.length : (data.days['1'] || []).length + (data.lateFound?.['1'] || []).length}
             </div>
             <div className="eyebrow">day {mounted ? activeDay : 1} lines</div>
           </div>
@@ -439,7 +439,7 @@ export default function PublicDashboard({ initialData }) {
             <button className={`button ${isRawView ? 'button-primary' : ''}`} onClick={() => setIsRawView(!isRawView)}>Raw</button>
             <a href={`/api/raw?day=${mounted ? activeDay : 1}`} target="_blank" rel="noreferrer" className="button">API raw</a>
             <a href="/api/raw?day=all" target="_blank" rel="noreferrer" className="button">API raw (All)</a>
-            <button className="button button-primary" onClick={copyAll} disabled={activeCodes.length === 0 && lateFoundSet.size === 0}>Copy All</button>
+            <button className="button button-primary" onClick={copyAll} disabled={activeCodes.length === 0 && lateFoundArray.length === 0}>Copy All</button>
           </div>
         </div>
 
@@ -450,7 +450,7 @@ export default function PublicDashboard({ initialData }) {
             readOnly
             className="input"
             style={{ width: '100%', height: '300px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '14px', lineHeight: '1.5' }}
-            value={[...activeCodes, ...Array.from(lateFoundSet)].join('\n')}
+            value={[...activeCodes, ...lateFoundArray].join('\n')}
             onFocus={(e) => e.target.select()}
           />
         ) : (
@@ -476,7 +476,7 @@ export default function PublicDashboard({ initialData }) {
                 </button>
               </div>
             ))}
-            {Array.from(lateFoundSet).map(code => (
+            {lateFoundArray.map(code => (
               <div key={code} style={{
                 display: 'flex',
                 justifyContent: 'space-between',
