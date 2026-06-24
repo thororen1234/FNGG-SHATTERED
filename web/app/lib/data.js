@@ -5,11 +5,13 @@ const DATA_DIR = path.join(process.cwd(), 'uploaded');
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
 
 const defaultData = {
-  days: {
-    "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
+  shattered: {
+    days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
+    lateFound: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] }
   },
-  lateFound: {
-    "1": [], "2": [], "3": [], "4": [], "5": [], "6": []
+  og: {
+    days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
+    lateFound: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] }
   },
   updatedAt: new Date().toISOString()
 };
@@ -28,8 +30,11 @@ export async function getData() {
   const content = await fs.readFile(DATA_FILE, 'utf-8');
   try {
     const parsed = JSON.parse(content);
-    if (!parsed.lateFound) {
-      parsed.lateFound = { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] };
+    if (!parsed.shattered) {
+      return { ...defaultData, updatedAt: new Date().toISOString() };
+    }
+    if (!parsed.og) {
+      parsed.og = defaultData.og;
     }
     return parsed;
   } catch (err) {

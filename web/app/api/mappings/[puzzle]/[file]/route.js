@@ -3,9 +3,9 @@ import path from 'path';
 
 export async function GET(request, { params }) {
   try {
-    const { file } = await params;
+    const { puzzle, file } = await params;
     
-    const filePath = path.join(process.cwd(), 'uploaded', 'mappings', file);
+    const filePath = path.join(process.cwd(), 'uploaded', 'mappings', puzzle, file);
     
     try {
       const buffer = await fs.readFile(filePath);

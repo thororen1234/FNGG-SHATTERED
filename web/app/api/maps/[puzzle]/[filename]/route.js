@@ -3,14 +3,14 @@ import path from 'path';
 import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
-  const { filename } = await params;
+  const { puzzle, filename } = await params;
 
   if (!filename || typeof filename !== 'string') {
     return new NextResponse('Bad Request', { status: 400 });
   }
 
   const safeFilename = path.basename(filename);
-  const filepath = path.join(process.cwd(), 'uploaded', 'maps', safeFilename);
+  const filepath = path.join(process.cwd(), 'uploaded', 'maps', puzzle, safeFilename);
 
   try {
     const file = await fs.readFile(filepath);

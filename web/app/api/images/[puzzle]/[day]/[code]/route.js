@@ -5,10 +5,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
   try {
-    const { day, code } = await params;
+    const { puzzle, day, code } = await params;
 
     const filename = code.endsWith('.webp') ? code : `${code}.webp`;
-    let filePath = path.join(process.cwd(), 'uploaded', 'images', day, filename);
+    let filePath = path.join(process.cwd(), 'uploaded', 'images', puzzle, day, filename);
 
     const buffer = await fs.readFile(filePath);
     return new Response(buffer, {
