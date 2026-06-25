@@ -35,7 +35,7 @@ async function downloadImage(url, dest) {
 }
 
 function readCodes(day) {
-    const jsonPath = path.join(__dirname, `day-${day}-og.json`);
+    const jsonPath = path.join(__dirname, '..', 'web', 'uploaded', 'mappings', 'og', `day-${day}.json`);
 
     if (!fs.existsSync(jsonPath)) {
         throw new Error(`File not found: ${jsonPath}`);
@@ -76,12 +76,12 @@ async function main() {
         process.exit(0);
     }
 
-    const outputDir = path.join(__dirname, '..', 'web', 'uploaded', 'images');
+    const outputDir = path.join(__dirname, '..', 'web', 'uploaded', 'images', 'og');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const dayDir = path.join(outputDir, `day-${targetDay}-og`);
+    const dayDir = path.join(outputDir, `day-${targetDay}`);
     if (!fs.existsSync(dayDir)) {
         fs.mkdirSync(dayDir, { recursive: true });
     }
