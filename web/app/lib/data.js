@@ -27,8 +27,10 @@ export async function getEventData(mode, chapter, season) {
 
     return parsed;
   } catch (err) {
-    console.error(`Failed to read index.json for ${parts.join('/')}, returning default data:`, err);
-    return { ...defaultEventData, updatedAt: new Date().toISOString() };
+    if (err.code !== 'ENOENT') {
+      console.error(`Failed to read index.json for ${parts.join('/')}:`, err);
+    }
+    return null;
   }
 }
 
@@ -47,18 +49,18 @@ export async function getAllEvents() {
   try {
     const modes = await fs.readdir(MAPPINGS_DIR, { withFileTypes: true });
     for (const mode of modes) {
-      if (!mode.isDirectory()) continue;
+      if (!mode.isDirectory() || mode.name.startsWith('.')) continue;
       const chapters = await fs.readdir(path.join(MAPPINGS_DIR, mode.name), { withFileTypes: true });
 
       for (const chapter of chapters) {
-        if (!chapter.isDirectory()) continue;
+        if (!chapter.isDirectory() || chapter.name.startsWith('.')) continue;
 
         const chapterPath = path.join(MAPPINGS_DIR, mode.name, chapter.name);
         const seasonsOrFiles = await fs.readdir(chapterPath, { withFileTypes: true });
 
         let hasSeason = false;
         for (const item of seasonsOrFiles) {
-          if (item.isDirectory()) {
+          if (item.isDirectory() && !item.name.startsWith('.')) {
             hasSeason = true;
             try {
               const indexFile = path.join(chapterPath, item.name, 'index.json');

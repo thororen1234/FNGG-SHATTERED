@@ -1,5 +1,6 @@
 import { getEventData } from '@/app/lib/data';
 import PublicDashboard from '@/app/components/PublicDashboard';
+import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,10 @@ export default async function EventPage({ params }) {
   if (slug && slug.length >= 2) season = slug[1];
 
   const data = await getEventData(mode, chapter, season);
+
+  if (!data) {
+    notFound();
+  }
 
   return (
     <PublicDashboard
