@@ -12,8 +12,12 @@ export async function GET(request) {
   const season = searchParams.get('season');
 
   const parts = [mode];
-  if (chapter) parts.push(chapter);
-  if (season) parts.push(season);
+  if (chapter) {
+    parts.push(chapter);
+    if (season) {
+      parts.push(season);
+    }
+  }
 
   const eventDir = path.join(process.cwd(), 'uploaded', 'mappings', ...parts);
 
@@ -36,9 +40,18 @@ export async function GET(request) {
 
     await scanDir(eventDir);
 
+    let filteredFiles = jsonFiles;
+    if (!chapter && season) {
+      const mappingsDir = path.join(process.cwd(), 'uploaded', 'mappings');
+      filteredFiles = filteredFiles.filter(file => {
+        const rel = path.relative(mappingsDir, file).split(path.sep);
+        return rel.length > 3 && rel[2] === season;
+      });
+    }
+
     const targetFiles = (dayParam === 'all')
-      ? jsonFiles
-      : jsonFiles.filter(f => path.basename(f) === `${parseInt(dayParam) || 1}.json`);
+      ? filteredFiles
+      : filteredFiles.filter(f => path.basename(f) === `${parseInt(dayParam) || 1}.json`);
 
     const mappingsDir = path.join(process.cwd(), 'uploaded', 'mappings');
     const grouped = {};
