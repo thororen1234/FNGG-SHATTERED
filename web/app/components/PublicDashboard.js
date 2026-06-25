@@ -1,27 +1,74 @@
 'use client';
 
 import { useState, useEffect, useMemo, useLayoutEffect } from 'react';
+import Link from 'next/link';
 
-function getGridCoords(coords, puzzle) {
+function getGridCoords(coords, mode) {
   if (Array.isArray(coords)) return [coords[0], coords[1]];
-  if (puzzle === 'og' && typeof coords === 'object') {
+  if (mode === 'og' && typeof coords === 'object') {
     return [(coords.x - 720) / 240, (coords.y - 720) / 240];
   }
   return [0, 0];
 }
 
-export default function PublicDashboard({ initialData }) {
+function formatRefreshTime(timeStr) {
+  if (!timeStr) return '';
+  if (timeStr === 'daily') return 'every day';
+
+  const parts = [];
+  const regex = /(\d+)([dhms])/g;
+  let match;
+  let hasMatches = false;
+  let isFirst = true;
+
+  while ((match = regex.exec(timeStr)) !== null) {
+    hasMatches = true;
+    const value = parseInt(match[1], 10);
+    const unitChar = match[2];
+
+    let unit = '';
+    if (unitChar === 'd') unit = 'day';
+    else if (unitChar === 'h') unit = 'hour';
+    else if (unitChar === 'm') unit = 'minute';
+    else if (unitChar === 's') unit = 'second';
+
+    if (isFirst && value === 1) {
+      parts.push(unit);
+    } else {
+      parts.push(`${value} ${unit}${value !== 1 ? 's' : ''}`);
+    }
+    isFirst = false;
+  }
+
+  if (!hasMatches) return timeStr;
+
+  let joinedParts = '';
+  if (parts.length === 1) {
+    joinedParts = parts[0];
+  } else if (parts.length === 2) {
+    joinedParts = parts.join(' and ');
+  } else {
+    joinedParts = parts.slice(0, -1).join(', ') + ', and ' + parts[parts.length - 1];
+  }
+
+  return `every ${joinedParts}`;
+}
+
+export default function PublicDashboard({ initialData, eventMode, eventChapter, eventSeason, eventName }) {
   const [activeDay, setActiveDay] = useState(1);
-  const [activePuzzle, setActivePuzzle] = useState('shattered');
   const [isRawView, setIsRawView] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [mapError, setMapError] = useState(false);
-  const data = initialData || {};
+  const puzzleData = initialData || { days: {}, lateFound: {} };
 
   const [mappings, setMappings] = useState(null);
 
   const TOTAL_PIECES = mappings?.count || 1296;
-  const puzzleData = data?.[activePuzzle] || { days: {}, lateFound: {} };
+
+  const eventPathParts = [eventMode];
+  if (eventChapter) eventPathParts.push(eventChapter);
+  if (eventSeason) eventPathParts.push(eventSeason);
+  const eventPath = eventPathParts.join('/');
 
   const [sliderValue, setSliderValue] = useState(TOTAL_PIECES + 1);
 
@@ -34,42 +81,32 @@ export default function PublicDashboard({ initialData }) {
     let maxRow = 0;
     Object.entries(mappings).forEach(([code, coords]) => {
       if (code !== 'count') {
-        const [x, y] = getGridCoords(coords, activePuzzle);
+        const [x, y] = getGridCoords(coords, eventMode);
         if (typeof x === 'number') maxCol = Math.max(maxCol, x);
         if (typeof y === 'number') maxRow = Math.max(maxRow, y);
       }
     });
 
     return { cols: maxCol + 1 || 48, rows: maxRow + 1 || 27 };
-  }, [mappings, activePuzzle]);
+  }, [mappings, eventMode]);
 
   useEffect(() => {
     setTimeout(() => {
       setMounted(true);
-      const savedDay = localStorage.getItem('fngg_active_day');
-      const savedPuzzle = localStorage.getItem('fngg_active_puzzle');
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const pageParam = urlParams.get('page');
-
-      if (pageParam && ['shattered', 'og'].includes(pageParam)) {
-        setActivePuzzle(pageParam);
-      } else if (savedPuzzle && ['shattered', 'og'].includes(savedPuzzle)) {
-        setActivePuzzle(savedPuzzle);
-      }
+      const savedDay = localStorage.getItem(`fngg_active_day_${eventPath}`);
       if (savedDay) {
         const d = Number(savedDay);
         if (d !== 1) setActiveDay(d);
       }
     }, 0);
-  }, []);
+  }, [eventPath]);
 
   useEffect(() => {
-    document.title = activePuzzle === 'og' ? 'OG' : 'Shattered';
-  }, [activePuzzle]);
+    document.title = eventName;
+  }, [eventName]);
 
   useEffect(() => {
-    fetch(`/api/mappings/${activePuzzle}/day-${activeDay}.json`)
+    fetch(`/api/mappings/${eventPath}/${activeDay}.json`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
@@ -77,11 +114,10 @@ export default function PublicDashboard({ initialData }) {
       .then(mappingData => {
         setMappings(mappingData);
         const count = mappingData.count || 1296;
-        if (activePuzzle === 'og') {
+        if (eventMode === 'og') {
           setSliderValue(count + 1);
         } else {
-          const pData = data?.[activePuzzle] || { days: {} };
-          const known = (pData.days?.[String(activeDay)] || []).length;
+          const known = (puzzleData.days?.[String(activeDay)] || []).length;
           if ([1, 2].includes(activeDay)) {
             setSliderValue(count + 1);
           } else {
@@ -93,29 +129,21 @@ export default function PublicDashboard({ initialData }) {
         setMappings(null);
         setSliderValue(1297);
       });
-  }, [activeDay, activePuzzle, data]);
+  }, [activeDay, eventPath, eventMode, puzzleData]);
 
   const handleDayChange = (d) => {
     setActiveDay(d);
     setMapError(false);
-    localStorage.setItem('fngg_active_day', d);
-  };
-
-  const handlePuzzleChange = (p) => {
-    setActivePuzzle(p);
-    setActiveDay(1);
-    setMapError(false);
-    localStorage.setItem('fngg_active_puzzle', p);
-    localStorage.setItem('fngg_active_day', '1');
+    localStorage.setItem(`fngg_active_day_${eventPath}`, d);
   };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
 
-  const days = activePuzzle === 'og' ? [1, 2, 3] : [1, 2, 3, 4, 5, 6];
+  const days = eventMode === 'og' ? [1, 2, 3] : [1, 2, 3, 4, 5, 6];
 
   let activeCodes = [];
-  if (activePuzzle === 'og') {
+  if (eventMode === 'og') {
     activeCodes = mappings ? Object.keys(mappings).filter(k => k !== 'count').sort() : [];
   } else {
     activeCodes = [...(puzzleData.days?.[String(activeDay)] || [])].sort();
@@ -150,18 +178,18 @@ export default function PublicDashboard({ initialData }) {
     }
 
     if (found) {
-      setSearchResult({ found: true, text: `✓ Found in Day ${foundDay}: ${found}` });
+      setSearchResult({ found: true, text: `Found in Puzzle ${foundDay}: ${found}` });
     } else {
-      setSearchResult({ found: false, text: '✗ Code not found in any published day.' });
+      setSearchResult({ found: false, text: 'Code not found in any published day.' });
     }
   };
 
   const lateFoundArray = useMemo(
     () => {
-      if (activePuzzle === 'og') return [];
+      if (eventMode === 'og') return [];
       return puzzleData.lateFound?.[String(activeDay)] || [];
     },
-    [puzzleData, activeDay, activePuzzle]
+    [puzzleData, activeDay, eventMode]
   );
 
   const copyAll = async () => {
@@ -184,13 +212,13 @@ export default function PublicDashboard({ initialData }) {
     if (mappings) {
       Object.entries(mappings).forEach(([code, coords]) => {
         if (code !== 'count') {
-          const [x, y] = getGridCoords(coords, activePuzzle);
+          const [x, y] = getGridCoords(coords, eventMode);
           map[`${x},${y}`] = code;
         }
       });
     }
     return map;
-  }, [mappings, activePuzzle]);
+  }, [mappings, eventMode]);
 
   const cells = useMemo(() => {
     const elements = [];
@@ -209,14 +237,14 @@ export default function PublicDashboard({ initialData }) {
             className={`shattered-board-cell ${isLateFound ? 'late-found-cell' : ''} ${hasKnownPiece ? 'valid-fragment' : ''}`}
             data-tooltip={isLateFound ? `Fragment ${code}\nFound after puzzle\nRow ${r + 1}, Column ${c + 1}` : code ? `Fragment ${code}\nRow ${r + 1}, Column ${c + 1}` : undefined}
             style={{
-              backgroundImage: shouldRenderImage ? `url(/api/images/${activePuzzle}/day-${activeDay}/${code}.webp)` : 'none'
+              backgroundImage: shouldRenderImage ? `url(/api/images/${eventPath}/${activeDay}/${code}.webp)` : 'none'
             }}
           />
         );
       }
     }
     return elements;
-  }, [mappings, activeDay, cellMap, activeCodes, lateFoundArray, gridSize, activePuzzle]);
+  }, [mappings, activeDay, cellMap, activeCodes, lateFoundArray, gridSize, eventPath]);
 
   const orderedCellIds = useMemo(() => {
     const knownIds = shuffledCodes.map(code => `cell-${code}`);
@@ -249,97 +277,66 @@ export default function PublicDashboard({ initialData }) {
   }, [sliderValue, orderedCellIds, mappings, cellMap, gridSize]);
 
   return (
-    <div id="view-public" data-theme={activePuzzle}>
+    <div id="view-public" data-theme={eventMode === 'og' ? 'og' : 'shattered'}>
       <header className="appbar">
-        <a href="/" className="brand">
-          <span>{activePuzzle === 'og' ? 'OG PUZZLE' : 'SHATTERED'}</span>
-        </a>
+        <Link href="/" className="brand" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span>Home</span>
+        </Link>
         <span className="appbar-badge">
-          {activePuzzle === 'og' ? 'OG Season 9' : 'Chapter 7 · Season 3'}
+          {eventName}
         </span>
       </header>
-      <div className="site-tagline">
-        <span className="eyebrow">Community Event</span>
-        <p className="tagline-text">
-          {activePuzzle === 'og'
-            ? 'FNGG OG was built around 3 teasers for Fortnite OG Season 9, where players gathered fragments to complete each of the 3 puzzles together as a community.'
-            : 'FNGG Shattered was built around 6 teasers for Fortnite Chapter 7 Season 3, where players gathered fragments to complete each of the 6 puzzles together as a community.'}
-        </p>
-      </div>
 
       <section className="panel" style={{ marginBottom: '2rem' }}>
-        <h1 className="hero-title">Fragment Codes</h1>
-        <p style={{ color: 'var(--text-muted)' }}>The event is now over every code is listed below.</p>
+        <h1 className="hero-title">{eventMode === 'og' ? 'Fortnite OG Pieces' : 'Fragment Codes'}</h1>
+        <p style={{ color: 'var(--text-muted)' }}>
+          {puzzleData.ongoing === false ? (
+            puzzleData.refresh
+              ? `Puzzles came out ${formatRefreshTime(puzzleData.refresh)} but the event is now over every code is listed below.`
+              : 'The event is now over every code is listed below.'
+          ) : (
+            `This event is currently ongoing please submit new codes below.${puzzleData.refresh ? ` New puzzles come out ${formatRefreshTime(puzzleData.refresh)}.` : ''}`
+          )}
+        </p>
 
         <div className="grid-2" style={{ marginTop: '1.5rem', gap: '1rem' }}>
           <div>
             <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)' }}>
               {mounted ? activeCodes.length + lateFoundArray.length : (puzzleData.days?.['1'] || []).length + (puzzleData.lateFound?.['1'] || []).length}
             </div>
-            <div className="eyebrow">day {mounted ? activeDay : 1} lines</div>
+            <div className="eyebrow">puzzle {mounted ? activeDay : 1} pieces</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {days.map(d => {
+              const isActive = mounted ? (activeDay === d) : (d === 1);
+              let count = 0;
+              if (eventMode === 'og') {
+                count = (d === activeDay && mappings) ? activeCodes.length : 0;
+              } else {
+                count = (puzzleData.days?.[String(d)] || []).length + (puzzleData.lateFound?.[String(d)] || []).length;
+              }
+              return (
+                <button
+                  key={d}
+                  onClick={() => handleDayChange(d)}
+                  className={`button day-button ${isActive ? 'active' : ''}`}
+                >
+                  <span>Puzzle {d}</span>
+                  {eventMode !== 'og' && <strong style={{ marginLeft: '0.5rem' }}>{count}</strong>}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {days.map(d => {
-            const isActive = mounted ? (activeDay === d) : (d === 1);
-            let count = 0;
-            if (activePuzzle === 'og') {
-              // OG does not have partial counts in data.json
-              count = (d === activeDay && mappings) ? activeCodes.length : 0;
-            } else {
-              count = (puzzleData.days?.[String(d)] || []).length + (puzzleData.lateFound?.[String(d)] || []).length;
-            }
-            return (
-              <button
-                key={d}
-                onClick={() => handleDayChange(d)}
-                className="button"
-                style={{
-                  borderColor: isActive ? 'var(--primary)' : 'var(--border)',
-                  backgroundColor: isActive ? 'var(--primary-bg-active)' : 'var(--bg-panel)',
-                  color: isActive ? 'var(--primary)' : 'var(--text)'
-                }}
-              >
-                <span>Day {d}</span>
-                {activePuzzle !== 'og' && <strong style={{ marginLeft: '0.5rem' }}>{count}</strong>}
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginLeft: 'auto' }}>
-          <button
-            onClick={() => handlePuzzleChange('shattered')}
-            className="button"
-            style={{
-              borderColor: activePuzzle === 'shattered' ? 'var(--primary)' : 'var(--border)',
-              backgroundColor: activePuzzle === 'shattered' ? 'var(--primary-bg-active)' : 'var(--bg-panel)',
-              color: activePuzzle === 'shattered' ? 'var(--primary)' : 'var(--text)'
-            }}
-          >
-            Shattered
-          </button>
-          <button
-            onClick={() => handlePuzzleChange('og')}
-            className="button"
-            style={{
-              borderColor: activePuzzle === 'og' ? 'var(--primary)' : 'var(--border)',
-              backgroundColor: activePuzzle === 'og' ? 'var(--primary-bg-active)' : 'var(--bg-panel)',
-              color: activePuzzle === 'og' ? 'var(--primary)' : 'var(--text)'
-            }}
-          >
-            OG
-          </button>
-        </div>
-      </div>
-
       <section className="panel" style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <span className="eyebrow">Day {mounted ? activeDay : 1}</span>
+            <span className="eyebrow">Puzzle {mounted ? activeDay : 1}</span>
             <h2>Current map</h2>
           </div>
         </div>
@@ -373,7 +370,7 @@ export default function PublicDashboard({ initialData }) {
                 max={TOTAL_PIECES + 1}
                 value={sliderValue}
                 onChange={(e) => setSliderValue(Number(e.target.value))}
-                style={{ width: '100%', cursor: 'pointer' }}
+                style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)' }}
               />
             </div>
           )}
@@ -404,9 +401,9 @@ export default function PublicDashboard({ initialData }) {
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                key={`map-${activePuzzle}-day-${mounted ? activeDay : 1}`}
-                src={`/api/maps/${activePuzzle}/day-${mounted ? activeDay : 1}.png?v=${encodeURIComponent(data?.updatedAt || '')}`}
-                alt={`Map for ${activePuzzle} day ${mounted ? activeDay : 1}`}
+                key={`map-${eventPath}-day-${mounted ? activeDay : 1}`}
+                src={`/api/maps/${eventPath}/${mounted ? activeDay : 1}.png?v=${encodeURIComponent(puzzleData?.updatedAt || '')}`}
+                alt={`Map for puzzle ${mounted ? activeDay : 1}`}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -426,7 +423,7 @@ export default function PublicDashboard({ initialData }) {
                 border: '1px dashed var(--border)',
                 borderRadius: 'var(--radius)'
               }}>
-                No map available for {activePuzzle} day {mounted ? activeDay : 1}.
+                No map available for puzzle {mounted ? activeDay : 1}.
               </div>
             </div>
           </div>
@@ -466,13 +463,13 @@ export default function PublicDashboard({ initialData }) {
       <section className="panel">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <span className="eyebrow">Day {mounted ? activeDay : 1}</span>
+            <span className="eyebrow">Puzzle {mounted ? activeDay : 1}</span>
             <h2>Published Codes</h2>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button className={`button ${isRawView ? 'button-primary' : ''}`} onClick={() => setIsRawView(!isRawView)}>Raw</button>
-            <a href={`/api/raw?day=${mounted ? activeDay : 1}&puzzle=${activePuzzle}`} target="_blank" rel="noreferrer" className="button">API raw</a>
-            <a href={`/api/raw?day=all&puzzle=${activePuzzle}`} target="_blank" rel="noreferrer" className="button">API raw (All)</a>
+            <a href={`/api/raw?day=${mounted ? activeDay : 1}&mode=${eventMode}${eventChapter ? `&chapter=${eventChapter}` : ''}${eventSeason ? `&season=${eventSeason}` : ''}`} target="_blank" rel="noreferrer" className="button">API raw</a>
+            <a href={`/api/raw?day=all&mode=${eventMode}${eventChapter ? `&chapter=${eventChapter}` : ''}${eventSeason ? `&season=${eventSeason}` : ''}`} target="_blank" rel="noreferrer" className="button">API raw (All)</a>
             <button className="button button-primary" onClick={copyAll} disabled={activeCodes.length === 0 && lateFoundArray.length === 0}>Copy All</button>
           </div>
         </div>
@@ -540,7 +537,7 @@ export default function PublicDashboard({ initialData }) {
       </section>
 
       <footer style={{ marginTop: '3rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        <p>Software endpoint: <code style={{ color: 'var(--primary)' }}>/api/raw?day={mounted ? activeDay : 1}&amp;puzzle={activePuzzle}</code></p>
+        <p>Software endpoint: <code style={{ color: 'var(--primary)' }}>{`/api/raw?day=${mounted ? activeDay : 1}&mode=${eventMode}${eventChapter ? `&chapter=${eventChapter}` : ''}${eventSeason ? `&season=${eventSeason}` : ''}`}</code></p>
       </footer>
     </div>
   );

@@ -25,6 +25,15 @@
   --primary-hover: #5c8aff;
   --primary-glow: rgba(62, 112, 221, 0.2);
   --primary-bg-active: rgba(62, 112, 221, 0.1);
+  --border-focus: var(--primary);
+}
+
+[data-theme="home"] {
+  --primary: #ec4899;
+  --primary-hover: #db2777;
+  --primary-glow: rgba(236, 72, 153, 0.2);
+  --primary-bg-active: rgba(236, 72, 153, 0.1);
+  --border-focus: var(--primary);
 }
 
 * {
@@ -33,6 +42,10 @@
   padding: 0;
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+html {
+  font-size: 14px;
 }
 
 ::-webkit-scrollbar {
@@ -53,31 +66,16 @@ a {
 }
 
 .shell {
-  max-width: 1600px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
-
-@media (min-width: 1800px) {
-  .shell {
-    max-width: 1800px;
-    padding: 2.5rem 3rem;
-  }
-}
-
-@media (min-width: 2200px) {
-  .shell {
-    max-width: 2100px;
-    padding: 3rem 4rem;
-  }
-}
-
 h1, h2, h3 {
   line-height: 1.2;
 }
 
 .hero-title {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
   -webkit-background-clip: text;
@@ -99,7 +97,6 @@ h1, h2, h3 {
   align-items: center;
   padding-bottom: 1.5rem;
   margin-bottom: 0;
-  border-bottom: 1px solid var(--border);
 }
 
 .brand {
@@ -137,11 +134,7 @@ h1, h2, h3 {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  padding: 1.25rem 1.5rem;
   margin-bottom: 2rem;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 6%, transparent) 0%, transparent 70%);
-  border-left: 3px solid var(--primary);
-  border-bottom: 1px solid var(--border);
 }
 
 .tagline-text {
@@ -210,6 +203,24 @@ h1, h2, h3 {
   background-color: var(--primary-hover);
   border-color: var(--primary-hover);
   box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.day-button {
+  border-color: var(--border);
+  background-color: var(--bg-panel);
+  color: var(--text);
+}
+
+.day-button:hover:not(.active) {
+  background-color: var(--bg-panel-hover);
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.day-button.active {
+  border-color: var(--primary);
+  background-color: var(--primary-bg-active);
+  color: var(--primary);
 }
 
 .button-danger {

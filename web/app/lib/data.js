@@ -1,49 +1,97 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), 'uploaded');
-const DATA_FILE = path.join(DATA_DIR, 'data.json');
+const MAPPINGS_DIR = path.join(process.cwd(), 'uploaded', 'mappings');
 
-const defaultData = {
-  shattered: {
-    days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
-    lateFound: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] }
-  },
-  og: {
-    days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
-    lateFound: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] }
-  },
+const defaultEventData = {
+  days: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
+  lateFound: { "1": [], "2": [], "3": [], "4": [], "5": [], "6": [] },
   updatedAt: new Date().toISOString()
 };
 
-async function ensureDataFile() {
-  await fs.mkdir(DATA_DIR, { recursive: true }).catch(() => { });
-  try {
-    await fs.access(DATA_FILE);
-  } catch (err) {
-    await fs.writeFile(DATA_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
-  }
-}
+export async function getEventData(mode, chapter, season) {
+  const parts = [mode];
+  if (chapter) parts.push(chapter);
+  if (season) parts.push(season);
 
-export async function getData() {
-  await ensureDataFile();
-  const content = await fs.readFile(DATA_FILE, 'utf-8');
+  const eventDir = path.join(MAPPINGS_DIR, ...parts);
+  const indexFile = path.join(eventDir, 'index.json');
+
   try {
+    const content = await fs.readFile(indexFile, 'utf-8');
     const parsed = JSON.parse(content);
-    if (!parsed.shattered) {
-      return { ...defaultData, updatedAt: new Date().toISOString() };
-    }
-    if (!parsed.og) {
-      parsed.og = defaultData.og;
-    }
+
+    // Ensure default structure exists
+    if (!parsed.days) parsed.days = { ...defaultEventData.days };
+    if (!parsed.lateFound) parsed.lateFound = { ...defaultEventData.lateFound };
+
     return parsed;
   } catch (err) {
-    console.error('Failed to parse data.json, returning default data:', err);
-    return { ...defaultData, updatedAt: new Date().toISOString() };
+    console.error(`Failed to read index.json for ${parts.join('/')}, returning default data:`, err);
+    return { ...defaultEventData, updatedAt: new Date().toISOString() };
   }
 }
 
-export async function saveData(data) {
+export async function saveEventData(mode, chapter, season, data) {
+  const parts = [mode];
+  if (chapter) parts.push(chapter);
+  if (season) parts.push(season);
+
+  const indexFile = path.join(MAPPINGS_DIR, ...parts, 'index.json');
   data.updatedAt = new Date().toISOString();
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  await fs.writeFile(indexFile, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+export async function getAllEvents() {
+  const events = [];
+  try {
+    const modes = await fs.readdir(MAPPINGS_DIR, { withFileTypes: true });
+    for (const mode of modes) {
+      if (!mode.isDirectory()) continue;
+      const chapters = await fs.readdir(path.join(MAPPINGS_DIR, mode.name), { withFileTypes: true });
+
+      for (const chapter of chapters) {
+        if (!chapter.isDirectory()) continue;
+
+        const chapterPath = path.join(MAPPINGS_DIR, mode.name, chapter.name);
+        const seasonsOrFiles = await fs.readdir(chapterPath, { withFileTypes: true });
+
+        let hasSeason = false;
+        for (const item of seasonsOrFiles) {
+          if (item.isDirectory()) {
+            hasSeason = true;
+            try {
+              const indexFile = path.join(chapterPath, item.name, 'index.json');
+              const indexContent = await fs.readFile(indexFile, 'utf-8');
+              const indexData = JSON.parse(indexContent);
+              events.push({
+                mode: mode.name,
+                chapter: chapter.name,
+                season: item.name,
+                name: indexData.name || `${mode.name} Chapter ${chapter.name} Season ${item.name}`,
+                ongoing: indexData.ongoing
+              });
+            } catch (e) { }
+          }
+        }
+
+        if (!hasSeason) {
+          try {
+            const indexFile = path.join(chapterPath, 'index.json');
+            const indexContent = await fs.readFile(indexFile, 'utf-8');
+            const indexData = JSON.parse(indexContent);
+            events.push({
+              mode: mode.name,
+              chapter: chapter.name,
+              name: indexData.name || `${mode.name} Season ${chapter.name}`,
+              ongoing: indexData.ongoing
+            });
+          } catch (e) { }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Failed to get events:', err);
+  }
+  return events;
 }
