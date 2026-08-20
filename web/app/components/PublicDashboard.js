@@ -3,12 +3,20 @@
 import { useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import Link from 'next/link';
 
-function getGridCoords(coords, mode) {
+function getGridCoords(coords) {
   if (Array.isArray(coords)) return [coords[0], coords[1]];
-  if (mode === 'og' && typeof coords === 'object') {
+  if (coords && typeof coords === 'object') {
     return [(coords.x - 720) / 240, (coords.y - 720) / 240];
   }
   return [0, 0];
+}
+
+const PIECE_IMAGE_SCALE = 384 / 240;
+function isPieceMapFormat(mappings) {
+  if (!mappings) return false;
+  const sampleKey = Object.keys(mappings).find(k => k !== 'count');
+  if (!sampleKey) return false;
+  return !Array.isArray(mappings[sampleKey]);
 }
 
 function formatRefreshTime(timeStr) {
@@ -81,14 +89,14 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
     let maxRow = 0;
     Object.entries(mappings).forEach(([code, coords]) => {
       if (code !== 'count') {
-        const [x, y] = getGridCoords(coords, eventMode);
+        const [x, y] = getGridCoords(coords);
         if (typeof x === 'number') maxCol = Math.max(maxCol, x);
         if (typeof y === 'number') maxRow = Math.max(maxRow, y);
       }
     });
 
     return { cols: maxCol + 1 || 48, rows: maxRow + 1 || 27 };
-  }, [mappings, eventMode]);
+  }, [mappings]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -114,7 +122,7 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
       .then(mappingData => {
         setMappings(mappingData);
         const count = mappingData.count || 1296;
-        if (eventMode === 'og') {
+        if (isPieceMapFormat(mappingData)) {
           setSliderValue(count + 1);
         } else {
           const known = (puzzleData.days?.[String(activeDay)] || []).length;
@@ -140,10 +148,13 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
 
-  const days = eventMode === 'og' ? [1, 2, 3] : [1, 2, 3, 4, 5, 6];
+  const maxDay = puzzleData.maxDay || (eventMode === 'og' ? 3 : 6);
+  const days = Array.from({ length: maxDay }, (_, i) => i + 1);
+
+  const pieceMapFormat = isPieceMapFormat(mappings);
 
   let activeCodes = [];
-  if (eventMode === 'og') {
+  if (pieceMapFormat) {
     activeCodes = mappings ? Object.keys(mappings).filter(k => k !== 'count').sort() : [];
   } else {
     activeCodes = [...(puzzleData.days?.[String(activeDay)] || [])].sort();
@@ -186,10 +197,10 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
 
   const lateFoundArray = useMemo(
     () => {
-      if (eventMode === 'og') return [];
+      if (pieceMapFormat) return [];
       return puzzleData.lateFound?.[String(activeDay)] || [];
     },
-    [puzzleData, activeDay, eventMode]
+    [puzzleData, activeDay, pieceMapFormat]
   );
 
   const copyAll = async () => {
@@ -212,17 +223,48 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
     if (mappings) {
       Object.entries(mappings).forEach(([code, coords]) => {
         if (code !== 'count') {
-          const [x, y] = getGridCoords(coords, eventMode);
+          const [x, y] = getGridCoords(coords);
           map[`${x},${y}`] = code;
         }
       });
     }
     return map;
-  }, [mappings, eventMode]);
+  }, [mappings]);
 
   const cells = useMemo(() => {
     const elements = [];
     if (!mappings) return elements;
+
+    if (pieceMapFormat) {
+      const widthPct = (PIECE_IMAGE_SCALE / gridSize.cols) * 100;
+      const heightPct = (PIECE_IMAGE_SCALE / gridSize.rows) * 100;
+
+      Object.entries(mappings).forEach(([code, coords]) => {
+        if (code === 'count') return;
+        const [c, r] = getGridCoords(coords);
+        const hasKnownPiece = activeCodes.includes(code);
+        const z = (coords && typeof coords === 'object' && !Array.isArray(coords)) ? coords.z : 0;
+
+        elements.push(
+          <div
+            key={code}
+            id={`cell-${code}`}
+            className={`shattered-board-cell piece-overlap ${hasKnownPiece ? 'valid-fragment' : ''}`}
+            data-tooltip={`Fragment ${code}\nRow ${r + 1}, Column ${c + 1}`}
+            style={{
+              backgroundImage: hasKnownPiece ? `url(/api/images/${eventPath}/${activeDay}/${code}.webp)` : 'none',
+              left: `${((c + 0.5) / gridSize.cols) * 100}%`,
+              top: `${((r + 0.5) / gridSize.rows) * 100}%`,
+              width: `${widthPct}%`,
+              height: `${heightPct}%`,
+              zIndex: z || 0
+            }}
+          />
+        );
+      });
+      return elements;
+    }
+
     for (let r = 0; r < gridSize.rows; r++) {
       for (let c = 0; c < gridSize.cols; c++) {
         const code = cellMap[`${c},${r}`];
@@ -244,7 +286,7 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
       }
     }
     return elements;
-  }, [mappings, activeDay, cellMap, activeCodes, lateFoundArray, gridSize, eventPath]);
+  }, [mappings, activeDay, cellMap, activeCodes, lateFoundArray, gridSize, eventPath, pieceMapFormat]);
 
   const orderedCellIds = useMemo(() => {
     const knownIds = shuffledCodes.map(code => `cell-${code}`);
@@ -288,7 +330,7 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
       </header>
 
       <section className="panel" style={{ marginBottom: '2rem' }}>
-        <h1 className="hero-title">{eventMode === 'og' ? 'Fortnite OG Pieces' : 'Fragment Codes'}</h1>
+        <h1 className="hero-title">{puzzleData.heroTitle || (eventMode === 'og' ? 'Fortnite OG Pieces' : 'Puzzle Pieces')}</h1>
         <p style={{ color: 'var(--text-muted)' }}>
           {puzzleData.ongoing === false ? (
             puzzleData.refresh
@@ -313,7 +355,7 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
             {days.map(d => {
               const isActive = mounted ? (activeDay === d) : (d === 1);
               let count = 0;
-              if (eventMode === 'og') {
+              if (pieceMapFormat) {
                 count = (d === activeDay && mappings) ? activeCodes.length : 0;
               } else {
                 count = (puzzleData.days?.[String(d)] || []).length + (puzzleData.lateFound?.[String(d)] || []).length;
@@ -325,7 +367,7 @@ export default function PublicDashboard({ initialData, eventMode, eventChapter, 
                   className={`button day-button ${isActive ? 'active' : ''}`}
                 >
                   <span>Puzzle {d}</span>
-                  {eventMode !== 'og' && <strong style={{ marginLeft: '0.5rem' }}>{count}</strong>}
+                  {!pieceMapFormat && <strong style={{ marginLeft: '0.5rem' }}>{count}</strong>}
                 </button>
               );
             })}

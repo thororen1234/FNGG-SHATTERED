@@ -1,0 +1,1011 @@
+{
+    "count": 144,
+    "1C6D4D2EA547": {
+        "x": 2640,
+        "y": 960,
+        "placed": true,
+        "z": 1,
+        "seen": true
+    },
+    "66E98DDF5366": {
+        "x": 2640,
+        "y": 720,
+        "placed": true,
+        "z": 2,
+        "seen": true
+    },
+    "7E0C1C02562E": {
+        "x": 2880,
+        "y": 960,
+        "placed": true,
+        "z": 3,
+        "seen": true
+    },
+    "B5990D326B81": {
+        "x": 2640,
+        "y": 1200,
+        "placed": true,
+        "z": 4,
+        "seen": true
+    },
+    "855B18A1A2F7": {
+        "x": 2400,
+        "y": 960,
+        "placed": true,
+        "z": 5,
+        "seen": true
+    },
+    "8801B156EADA": {
+        "x": 2880,
+        "y": 720,
+        "placed": true,
+        "z": 6,
+        "seen": true
+    },
+    "D346A864F5D9": {
+        "x": 2400,
+        "y": 720,
+        "placed": true,
+        "z": 7,
+        "seen": true
+    },
+    "C3BBFB03AC7E": {
+        "x": 3120,
+        "y": 960,
+        "placed": true,
+        "z": 8,
+        "seen": true
+    },
+    "50B742FA16F2": {
+        "x": 2880,
+        "y": 1200,
+        "placed": true,
+        "z": 9,
+        "seen": true
+    },
+    "31A8AAE97574": {
+        "x": 2640,
+        "y": 1440,
+        "placed": true,
+        "z": 10,
+        "seen": true
+    },
+    "18DC72881B91": {
+        "x": 2400,
+        "y": 1200,
+        "placed": true,
+        "z": 11,
+        "seen": true
+    },
+    "45425C6B1AEA": {
+        "x": 2160,
+        "y": 960,
+        "placed": true,
+        "z": 12,
+        "seen": true
+    },
+    "7B1CDD43D73B": {
+        "x": 3120,
+        "y": 720,
+        "placed": true,
+        "z": 13,
+        "seen": true
+    },
+    "A0AC533E29C1": {
+        "x": 2160,
+        "y": 720,
+        "placed": true,
+        "z": 14,
+        "seen": true
+    },
+    "DE70C194E002": {
+        "x": 3360,
+        "y": 960,
+        "placed": true,
+        "z": 15,
+        "seen": true
+    },
+    "97778216D32F": {
+        "x": 3120,
+        "y": 1200,
+        "placed": true,
+        "z": 16,
+        "seen": true
+    },
+    "9849818B29B8": {
+        "x": 2880,
+        "y": 1440,
+        "placed": true,
+        "z": 17,
+        "seen": true
+    },
+    "B136B2F71AFF": {
+        "x": 2640,
+        "y": 1680,
+        "placed": true,
+        "z": 18,
+        "seen": true
+    },
+    "940CD31DB19D": {
+        "x": 2400,
+        "y": 1440,
+        "placed": true,
+        "z": 19,
+        "seen": true
+    },
+    "54D8E9B38371": {
+        "x": 2160,
+        "y": 1200,
+        "placed": true,
+        "z": 20,
+        "seen": true
+    },
+    "AECDB9595B64": {
+        "x": 1920,
+        "y": 960,
+        "placed": true,
+        "z": 21,
+        "seen": true
+    },
+    "430FA0B24D7A": {
+        "x": 3360,
+        "y": 720,
+        "placed": true,
+        "z": 22,
+        "seen": true
+    },
+    "0C20F7885A46": {
+        "x": 1920,
+        "y": 720,
+        "placed": true,
+        "z": 23,
+        "seen": true
+    },
+    "361E51409B56": {
+        "x": 3600,
+        "y": 960,
+        "placed": true,
+        "z": 24,
+        "seen": true
+    },
+    "99FE00793F38": {
+        "x": 3360,
+        "y": 1200,
+        "placed": true,
+        "z": 25,
+        "seen": true
+    },
+    "AF996CAAC0BD": {
+        "x": 3120,
+        "y": 1440,
+        "placed": true,
+        "z": 26,
+        "seen": true
+    },
+    "DFCDCAD6E7B8": {
+        "x": 2880,
+        "y": 1680,
+        "placed": true,
+        "z": 27,
+        "seen": true
+    },
+    "F769D3EFA6F1": {
+        "x": 2640,
+        "y": 1920,
+        "placed": true,
+        "z": 28,
+        "seen": true
+    },
+    "8F7B9847CE42": {
+        "x": 2400,
+        "y": 1680,
+        "placed": true,
+        "z": 29,
+        "seen": true
+    },
+    "A89B927310F0": {
+        "x": 2160,
+        "y": 1440,
+        "placed": true,
+        "z": 30,
+        "seen": true
+    },
+    "B3EE7B142C8F": {
+        "x": 1920,
+        "y": 1200,
+        "placed": true,
+        "z": 31,
+        "seen": true
+    },
+    "A2D8B0908E9C": {
+        "x": 1680,
+        "y": 960,
+        "placed": true,
+        "z": 32,
+        "seen": true
+    },
+    "C6132FCDEF0C": {
+        "x": 3600,
+        "y": 720,
+        "placed": true,
+        "z": 33,
+        "seen": true
+    },
+    "47DA609B3CBC": {
+        "x": 1680,
+        "y": 720,
+        "placed": true,
+        "z": 34,
+        "seen": true
+    },
+    "926FFDC9EE83": {
+        "x": 3840,
+        "y": 960,
+        "placed": true,
+        "z": 35,
+        "seen": true
+    },
+    "B8A28941D980": {
+        "x": 3600,
+        "y": 1200,
+        "placed": true,
+        "z": 36,
+        "seen": true
+    },
+    "773DD222D990": {
+        "x": 3360,
+        "y": 1440,
+        "placed": true,
+        "z": 37,
+        "seen": true
+    },
+    "081DA4FDACAE": {
+        "x": 3120,
+        "y": 1680,
+        "placed": true,
+        "z": 38,
+        "seen": true
+    },
+    "18854342019D": {
+        "x": 2880,
+        "y": 1920,
+        "placed": true,
+        "z": 39,
+        "seen": true
+    },
+    "22D24BB05EC2": {
+        "x": 2640,
+        "y": 2160,
+        "placed": true,
+        "z": 40,
+        "seen": true
+    },
+    "640C001B477A": {
+        "x": 2400,
+        "y": 1920,
+        "placed": true,
+        "z": 41,
+        "seen": true
+    },
+    "FD265A9F7321": {
+        "x": 2160,
+        "y": 1680,
+        "placed": true,
+        "z": 42,
+        "seen": true
+    },
+    "E4C5B685A026": {
+        "x": 1920,
+        "y": 1440,
+        "placed": true,
+        "z": 43,
+        "seen": true
+    },
+    "59D5A90D02DA": {
+        "x": 1680,
+        "y": 1200,
+        "placed": true,
+        "z": 44,
+        "seen": true
+    },
+    "8DAC28F91B26": {
+        "x": 1440,
+        "y": 960,
+        "placed": true,
+        "z": 45,
+        "seen": true
+    },
+    "DC6422E24119": {
+        "x": 3840,
+        "y": 720,
+        "placed": true,
+        "z": 46,
+        "seen": true
+    },
+    "BCDB6A4BAB6D": {
+        "x": 1440,
+        "y": 720,
+        "placed": true,
+        "z": 47,
+        "seen": true
+    },
+    "EC9361DB5974": {
+        "x": 4080,
+        "y": 960,
+        "placed": true,
+        "z": 48,
+        "seen": true
+    },
+    "5CF556269A00": {
+        "x": 3840,
+        "y": 1200,
+        "placed": true,
+        "z": 49,
+        "seen": true
+    },
+    "6555EB75BF69": {
+        "x": 3600,
+        "y": 1440,
+        "placed": true,
+        "z": 50,
+        "seen": true
+    },
+    "D5A354F825DF": {
+        "x": 3360,
+        "y": 1680,
+        "placed": true,
+        "z": 51,
+        "seen": true
+    },
+    "F31B2B38BB3A": {
+        "x": 3120,
+        "y": 1920,
+        "placed": true,
+        "z": 52,
+        "seen": true
+    },
+    "FCA7620214A2": {
+        "x": 2880,
+        "y": 2160,
+        "placed": true,
+        "z": 53,
+        "seen": true
+    },
+    "949BEA789D3D": {
+        "x": 2640,
+        "y": 2400,
+        "placed": true,
+        "z": 54,
+        "seen": true
+    },
+    "CB277098C826": {
+        "x": 2400,
+        "y": 2160,
+        "placed": true,
+        "z": 55,
+        "seen": true
+    },
+    "D097DF825E48": {
+        "x": 2160,
+        "y": 1920,
+        "placed": true,
+        "z": 56,
+        "seen": true
+    },
+    "BFA8E0463A34": {
+        "x": 1920,
+        "y": 1680,
+        "placed": true,
+        "z": 57,
+        "seen": true
+    },
+    "C98305F51C80": {
+        "x": 1680,
+        "y": 1440,
+        "placed": true,
+        "z": 58,
+        "seen": true
+    },
+    "72BC89D5078F": {
+        "x": 1440,
+        "y": 1200,
+        "placed": true,
+        "z": 59,
+        "seen": true
+    },
+    "C5369898B9DB": {
+        "x": 1200,
+        "y": 960,
+        "placed": true,
+        "z": 60,
+        "seen": true
+    },
+    "F9F76F99E4E4": {
+        "x": 4080,
+        "y": 720,
+        "placed": true,
+        "z": 61,
+        "seen": true
+    },
+    "116241640AAB": {
+        "x": 1200,
+        "y": 720,
+        "placed": true,
+        "z": 62,
+        "seen": true
+    },
+    "60E7967D505E": {
+        "x": 4320,
+        "y": 960,
+        "placed": true,
+        "z": 63,
+        "seen": true
+    },
+    "F272D583BF60": {
+        "x": 4080,
+        "y": 1200,
+        "placed": true,
+        "z": 64,
+        "seen": true
+    },
+    "182E817B50CF": {
+        "x": 3840,
+        "y": 1440,
+        "placed": true,
+        "z": 65,
+        "seen": true
+    },
+    "6A5B2B56C819": {
+        "x": 3600,
+        "y": 1680,
+        "placed": true,
+        "z": 66,
+        "seen": true
+    },
+    "D28E1E866238": {
+        "x": 3360,
+        "y": 1920,
+        "placed": true,
+        "z": 67,
+        "seen": true
+    },
+    "4C40FFEF7B80": {
+        "x": 3120,
+        "y": 2160,
+        "placed": true,
+        "z": 68,
+        "seen": true
+    },
+    "B93A22B1861B": {
+        "x": 2880,
+        "y": 2400,
+        "placed": true,
+        "z": 69,
+        "seen": true
+    },
+    "683F4EACCD81": {
+        "x": 2640,
+        "y": 2640,
+        "placed": true,
+        "z": 70,
+        "seen": true
+    },
+    "C3E6F83FBC0F": {
+        "x": 2400,
+        "y": 2400,
+        "placed": true,
+        "z": 71,
+        "seen": true
+    },
+    "26CFAB71E3EF": {
+        "x": 2160,
+        "y": 2160,
+        "placed": true,
+        "z": 72,
+        "seen": true
+    },
+    "6A1F154939E8": {
+        "x": 1920,
+        "y": 1920,
+        "placed": true,
+        "z": 73,
+        "seen": true
+    },
+    "1E8965067DB8": {
+        "x": 1680,
+        "y": 1680,
+        "placed": true,
+        "z": 74,
+        "seen": true
+    },
+    "57E01EF96342": {
+        "x": 1440,
+        "y": 1440,
+        "placed": true,
+        "z": 75,
+        "seen": true
+    },
+    "4E4A21B82C2F": {
+        "x": 1200,
+        "y": 1200,
+        "placed": true,
+        "z": 76,
+        "seen": true
+    },
+    "D8EAE07F207C": {
+        "x": 960,
+        "y": 960,
+        "placed": true,
+        "z": 77,
+        "seen": true
+    },
+    "428DEF8B81C8": {
+        "x": 4320,
+        "y": 720,
+        "placed": true,
+        "z": 78,
+        "seen": true
+    },
+    "7B17CB08B272": {
+        "x": 960,
+        "y": 720,
+        "placed": true,
+        "z": 79,
+        "seen": true
+    },
+    "765D57A2465A": {
+        "x": 4320,
+        "y": 1200,
+        "placed": true,
+        "z": 80,
+        "seen": true
+    },
+    "1CFA8FDF0C21": {
+        "x": 4080,
+        "y": 1440,
+        "placed": true,
+        "z": 81,
+        "seen": true
+    },
+    "1FF754390404": {
+        "x": 3840,
+        "y": 1680,
+        "placed": true,
+        "z": 82,
+        "seen": true
+    },
+    "37E810A97D4A": {
+        "x": 3600,
+        "y": 1920,
+        "placed": true,
+        "z": 83,
+        "seen": true
+    },
+    "07434F9C5A87": {
+        "x": 3360,
+        "y": 2160,
+        "placed": true,
+        "z": 84,
+        "seen": true
+    },
+    "B7976BA4942E": {
+        "x": 3120,
+        "y": 2400,
+        "placed": true,
+        "z": 85,
+        "seen": true
+    },
+    "07CF0056C1DF": {
+        "x": 2880,
+        "y": 2640,
+        "placed": true,
+        "z": 86,
+        "seen": true
+    },
+    "654784C348A3": {
+        "x": 2400,
+        "y": 2640,
+        "placed": true,
+        "z": 87,
+        "seen": true
+    },
+    "F47F0B018A88": {
+        "x": 2160,
+        "y": 2400,
+        "placed": true,
+        "z": 88,
+        "seen": true
+    },
+    "66285A77BFAF": {
+        "x": 1920,
+        "y": 2160,
+        "placed": true,
+        "z": 89,
+        "seen": true
+    },
+    "BE560938AB89": {
+        "x": 1680,
+        "y": 1920,
+        "placed": true,
+        "z": 90,
+        "seen": true
+    },
+    "2F6DA76F5202": {
+        "x": 1440,
+        "y": 1680,
+        "placed": true,
+        "z": 91,
+        "seen": true
+    },
+    "8218FA64317E": {
+        "x": 1200,
+        "y": 1440,
+        "placed": true,
+        "z": 92,
+        "seen": true
+    },
+    "CF7DD5AFEB9A": {
+        "x": 960,
+        "y": 1200,
+        "placed": true,
+        "z": 93,
+        "seen": true
+    },
+    "5211C6568FB4": {
+        "x": 720,
+        "y": 960,
+        "placed": true,
+        "z": 94,
+        "seen": true
+    },
+    "1392C7DE4388": {
+        "x": 720,
+        "y": 720,
+        "placed": true,
+        "z": 95,
+        "seen": true
+    },
+    "AE4A7531F0C9": {
+        "x": 4320,
+        "y": 1440,
+        "placed": true,
+        "z": 96,
+        "seen": true
+    },
+    "4956C1391DD3": {
+        "x": 4080,
+        "y": 1680,
+        "placed": true,
+        "z": 97,
+        "seen": true
+    },
+    "1CB6BAA63F09": {
+        "x": 3840,
+        "y": 1920,
+        "placed": true,
+        "z": 98,
+        "seen": true
+    },
+    "D025258DD549": {
+        "x": 3600,
+        "y": 2160,
+        "placed": true,
+        "z": 99,
+        "seen": true
+    },
+    "F3AB19A7E3B4": {
+        "x": 3360,
+        "y": 2400,
+        "placed": true,
+        "z": 100,
+        "seen": true
+    },
+    "3A410597E27D": {
+        "x": 3120,
+        "y": 2640,
+        "placed": true,
+        "z": 101,
+        "seen": true
+    },
+    "02AD66DD04B5": {
+        "x": 2160,
+        "y": 2640,
+        "placed": true,
+        "z": 102,
+        "seen": true
+    },
+    "D46A74A4768C": {
+        "x": 1920,
+        "y": 2400,
+        "placed": true,
+        "z": 103,
+        "seen": true
+    },
+    "C64E05949446": {
+        "x": 1680,
+        "y": 2160,
+        "placed": true,
+        "z": 104,
+        "seen": true
+    },
+    "612D1B9EB3E7": {
+        "x": 1440,
+        "y": 1920,
+        "placed": true,
+        "z": 105,
+        "seen": true
+    },
+    "D380F2B9E36E": {
+        "x": 1200,
+        "y": 1680,
+        "placed": true,
+        "z": 106,
+        "seen": true
+    },
+    "7E1F5CB267D3": {
+        "x": 960,
+        "y": 1440,
+        "placed": true,
+        "z": 107,
+        "seen": true
+    },
+    "3947623F06B5": {
+        "x": 720,
+        "y": 1200,
+        "placed": true,
+        "z": 108,
+        "seen": true
+    },
+    "D3557A261C30": {
+        "x": 4320,
+        "y": 1680,
+        "placed": true,
+        "z": 109,
+        "seen": true
+    },
+    "DC5EF44DFCFB": {
+        "x": 4080,
+        "y": 1920,
+        "placed": true,
+        "z": 110,
+        "seen": true
+    },
+    "044E6CE00BE6": {
+        "x": 3840,
+        "y": 2160,
+        "placed": true,
+        "z": 111,
+        "seen": true
+    },
+    "F46CC76DC1A7": {
+        "x": 3600,
+        "y": 2400,
+        "placed": true,
+        "z": 112,
+        "seen": true
+    },
+    "9B9A53633E77": {
+        "x": 3360,
+        "y": 2640,
+        "placed": true,
+        "z": 113,
+        "seen": true
+    },
+    "13A3FE9E0C02": {
+        "x": 1920,
+        "y": 2640,
+        "placed": true,
+        "z": 114,
+        "seen": true
+    },
+    "7F435FE88C01": {
+        "x": 1680,
+        "y": 2400,
+        "placed": true,
+        "z": 115,
+        "seen": true
+    },
+    "B4456098DF12": {
+        "x": 1440,
+        "y": 2160,
+        "placed": true,
+        "z": 116,
+        "seen": true
+    },
+    "7D5F204DEF75": {
+        "x": 1200,
+        "y": 1920,
+        "placed": true,
+        "z": 117,
+        "seen": true
+    },
+    "0BB91A39FEE8": {
+        "x": 960,
+        "y": 1680,
+        "placed": true,
+        "z": 118,
+        "seen": true
+    },
+    "ECAAEEBC2745": {
+        "x": 720,
+        "y": 1440,
+        "placed": true,
+        "z": 119,
+        "seen": true
+    },
+    "719174FDD030": {
+        "x": 4320,
+        "y": 1920,
+        "placed": true,
+        "z": 120,
+        "seen": true
+    },
+    "A561FB2087AD": {
+        "x": 4080,
+        "y": 2160,
+        "placed": true,
+        "z": 121,
+        "seen": true
+    },
+    "7D39851506F4": {
+        "x": 3840,
+        "y": 2400,
+        "placed": true,
+        "z": 122,
+        "seen": true
+    },
+    "FA7679262D1B": {
+        "x": 3600,
+        "y": 2640,
+        "placed": true,
+        "z": 123,
+        "seen": true
+    },
+    "C525CF544CEF": {
+        "x": 1680,
+        "y": 2640,
+        "placed": true,
+        "z": 124,
+        "seen": true
+    },
+    "903E6F1963FF": {
+        "x": 1440,
+        "y": 2400,
+        "placed": true,
+        "z": 125,
+        "seen": true
+    },
+    "66BEBAE5857C": {
+        "x": 1200,
+        "y": 2160,
+        "placed": true,
+        "z": 126,
+        "seen": true
+    },
+    "9B7E7A407E91": {
+        "x": 960,
+        "y": 1920,
+        "placed": true,
+        "z": 127,
+        "seen": true
+    },
+    "A23EFE579204": {
+        "x": 720,
+        "y": 1680,
+        "placed": true,
+        "z": 128,
+        "seen": true
+    },
+    "3166FB3E9CFC": {
+        "x": 4320,
+        "y": 2160,
+        "placed": true,
+        "z": 129,
+        "seen": true
+    },
+    "CF7C0F134219": {
+        "x": 4080,
+        "y": 2400,
+        "placed": true,
+        "z": 130,
+        "seen": true
+    },
+    "75EC46CC6386": {
+        "x": 3840,
+        "y": 2640,
+        "placed": true,
+        "z": 131,
+        "seen": true
+    },
+    "30AAD7867260": {
+        "x": 1440,
+        "y": 2640,
+        "placed": true,
+        "z": 132,
+        "seen": true
+    },
+    "27C8747CFD28": {
+        "x": 1200,
+        "y": 2400,
+        "placed": true,
+        "z": 133,
+        "seen": true
+    },
+    "EF645B2A4786": {
+        "x": 960,
+        "y": 2160,
+        "placed": true,
+        "z": 134,
+        "seen": true
+    },
+    "680B81F08ACF": {
+        "x": 720,
+        "y": 1920,
+        "placed": true,
+        "z": 135,
+        "seen": true
+    },
+    "99E19BDA0F79": {
+        "x": 4320,
+        "y": 2400,
+        "placed": true,
+        "z": 136,
+        "seen": true
+    },
+    "E5DFC0EB09DB": {
+        "x": 4080,
+        "y": 2640,
+        "placed": true,
+        "z": 137,
+        "seen": true
+    },
+    "B098838EC22C": {
+        "x": 1200,
+        "y": 2640,
+        "placed": true,
+        "z": 138,
+        "seen": true
+    },
+    "AA7BA7099C9B": {
+        "x": 960,
+        "y": 2400,
+        "placed": true,
+        "z": 139,
+        "seen": true
+    },
+    "51EFE19D5B5E": {
+        "x": 720,
+        "y": 2160,
+        "placed": true,
+        "z": 140,
+        "seen": true
+    },
+    "688364F36E0E": {
+        "x": 4320,
+        "y": 2640,
+        "placed": true,
+        "z": 141,
+        "seen": true
+    },
+    "C8F480A55305": {
+        "x": 960,
+        "y": 2640,
+        "placed": true,
+        "z": 142,
+        "seen": true
+    },
+    "C71F497F8527": {
+        "x": 720,
+        "y": 2400,
+        "placed": true,
+        "z": 143,
+        "seen": true
+    },
+    "C892F8B6EDA6": {
+        "x": 720,
+        "y": 2640,
+        "placed": true,
+        "z": 144,
+        "seen": true
+    }
+}

@@ -331,6 +331,11 @@ h1, h2, h3 {
   opacity: 1;
 }
 
+.shattered-board-cell.piece-overlap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
 .shattered-board-cell.late-found-cell.filled {
   opacity: 1;
   filter: brightness(0.75);

@@ -35,7 +35,7 @@ async function downloadImage(url, dest) {
 }
 
 function readCodes(day) {
-    const jsonPath = path.join(__dirname, '..', 'web', 'uploaded', 'mappings', 'og', `day-${day}.json`);
+    const jsonPath = path.join(__dirname, '..', 'web', 'uploaded', 'mappings', 'br/7/4', `${day}.json`);
 
     if (!fs.existsSync(jsonPath)) {
         throw new Error(`File not found: ${jsonPath}`);
@@ -76,12 +76,12 @@ async function main() {
         process.exit(0);
     }
 
-    const outputDir = path.join(__dirname, '..', 'web', 'uploaded', 'images', 'og');
+    const outputDir = path.join(__dirname, '..', 'web', 'uploaded', 'images', 'br/7/4');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const dayDir = path.join(outputDir, `day-${targetDay}`);
+    const dayDir = path.join(outputDir, `${targetDay}`);
     if (!fs.existsSync(dayDir)) {
         fs.mkdirSync(dayDir, { recursive: true });
     }
@@ -93,7 +93,7 @@ async function main() {
     let skipCount = 0;
 
     for (const code of codes) {
-        const url = `https://fortnite.gg/img/x/og-puzzle/${targetDay}/${code}.webp`;
+        const url = `https://fortnite.gg/img/x/override-puzzle/${targetDay}/${code}.webp`;
         const dest = path.join(dayDir, `${code}.webp`);
 
         if (fs.existsSync(dest)) {

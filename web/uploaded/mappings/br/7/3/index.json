@@ -1,5 +1,7 @@
 {
     "name": "Shattered",
+    "heroTitle": "Fragment Codes",
+    "maxDay": 6,
     "refresh": "1d",
     "ongoing": false,
     "days": {

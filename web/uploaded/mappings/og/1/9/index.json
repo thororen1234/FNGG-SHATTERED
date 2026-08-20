@@ -1,22 +1,18 @@
 {
   "name": "OG Season 9",
+  "heroTitle": "Fortnite OG Pieces",
+  "maxDay": 3,
   "refresh": "1h35m",
   "ongoing": false,
   "days": {
     "1": [],
     "2": [],
-    "3": [],
-    "4": [],
-    "5": [],
-    "6": []
+    "3": []
   },
   "lateFound": {
     "1": [],
     "2": [],
-    "3": [],
-    "4": [],
-    "5": [],
-    "6": []
+    "3": []
   },
   "updatedAt": "2026-06-05T11:21:35.562Z"
 }
