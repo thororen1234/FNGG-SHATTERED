@@ -6,10 +6,20 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const targetDay = process.argv[2];
+const eventDir = process.argv[2];
+const targetDay = process.argv[3];
+const puzzleSlug = process.argv[4] || 'override-puzzle';
 
-if (!targetDay) {
-    console.error('Please specify a day.');
+if (!eventDir || !targetDay) {
+    console.error('Usage: node scripts/fetch.mjs <event-dir> <day> [puzzle-slug]');
+    console.error('Example: node scripts/fetch.mjs br/7/4 1');
+    console.error('Example: node scripts/fetch.mjs og/1/9 1 og-puzzle');
+    process.exit(1);
+}
+
+const eventDirParts = eventDir.split('/').filter(Boolean);
+if (eventDirParts.some(part => part === '..' || part === '.')) {
+    console.error(`Invalid event dir: ${eventDir}`);
     process.exit(1);
 }
 
@@ -35,7 +45,7 @@ async function downloadImage(url, dest) {
 }
 
 function readCodes(day) {
-    const jsonPath = path.join(__dirname, '..', 'web', 'uploaded', 'mappings', 'br/7/4', `${day}.json`);
+    const jsonPath = path.join(__dirname, '..', 'web', 'uploaded', 'mappings', ...eventDirParts, `${day}.json`);
 
     if (!fs.existsSync(jsonPath)) {
         throw new Error(`File not found: ${jsonPath}`);
@@ -61,7 +71,7 @@ function readCodes(day) {
 }
 
 async function main() {
-    console.log(`Reading codes for day ${targetDay} from local JSON...`);
+    console.log(`Reading codes for ${eventDir} day ${targetDay} from local JSON...`);
 
     let codes;
     try {
@@ -76,7 +86,7 @@ async function main() {
         process.exit(0);
     }
 
-    const outputDir = path.join(__dirname, '..', 'web', 'uploaded', 'images', 'br/7/4');
+    const outputDir = path.join(__dirname, '..', 'web', 'uploaded', 'images', ...eventDirParts);
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
@@ -86,14 +96,14 @@ async function main() {
         fs.mkdirSync(dayDir, { recursive: true });
     }
 
-    console.log(`\nStarting downloads for day ${targetDay} (${codes.length} images)...`);
+    console.log(`\nStarting downloads for ${eventDir} day ${targetDay} (${codes.length} images, puzzle "${puzzleSlug}")...`);
 
     let successCount = 0;
     let failCount = 0;
     let skipCount = 0;
 
     for (const code of codes) {
-        const url = `https://fortnite.gg/img/x/override-puzzle/${targetDay}/${code}.webp`;
+        const url = `https://fortnite.gg/img/x/${puzzleSlug}/${targetDay}/${code}.webp`;
         const dest = path.join(dayDir, `${code}.webp`);
 
         if (fs.existsSync(dest)) {
@@ -112,7 +122,7 @@ async function main() {
         await new Promise(r => setTimeout(r, 50));
     }
 
-    console.log(`\nDay ${targetDay} complete. Downloaded: ${successCount}, Skipped: ${skipCount}, Failed: ${failCount}`);
+    console.log(`\n${eventDir} day ${targetDay} complete. Downloaded: ${successCount}, Skipped: ${skipCount}, Failed: ${failCount}`);
 
     process.exit(0);
 }
