@@ -4,7 +4,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN npm i -g pnpm
 
 FROM base AS builder
-RUN apk add --no-cache libc6-compat
+RUN for i in 1 2 3; do apk add --no-cache libc6-compat && exit 0; sleep 5; done; exit 1
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 RUN pnpm install
